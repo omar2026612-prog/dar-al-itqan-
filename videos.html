@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>الفيديوهات | دار الإتقان للمطابخ والديكور</title>
+<meta name="description" content="فيديوهات دعائية ولقطات من مشاريع دار الإتقان للمطابخ والديكور، وآخر منشورات صفحتنا على فيسبوك." />
+<link rel="canonical" href="https://ahmed.github.io/dar-al-itqan/videos.html" />
+<meta name="robots" content="index,follow" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@500;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="videos">
+<a href="#main" class="skip-link">تخطَّ إلى المحتوى</a>
+<div id="site-header"></div>
+
+<main id="main">
+  <section class="section--tight section--dark" style="padding-top:150px;">
+    <div class="container">
+      <span class="eyebrow">الدعاية والمرئيات</span>
+      <h1 class="h-title">الفيديوهات</h1>
+      <p class="lede" style="margin-top:16px;color:rgba(246,241,231,.75);">
+        فيديوهات من مشاريعنا ومعرضنا، بالإضافة إلى آخر ما ننشره مباشرةً على صفحتنا في فيسبوك.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ شبكة الفيديوهات (تُدار من لوحة التحكم / js/videos.js) ============ -->
+  <section class="section--tight">
+    <div class="container">
+      <div class="filter-bar" id="videoFilterBar">
+        <button class="filter-btn is-active" data-filter="all">الكل</button>
+        <button class="filter-btn" data-filter="kitchens">المطابخ</button>
+        <button class="filter-btn" data-filter="wardrobes">خزائن ملابس</button>
+        <button class="filter-btn" data-filter="bedrooms">غرف نوم</button>
+        <button class="filter-btn" data-filter="decor">ديكورات</button>
+        <button class="filter-btn" data-filter="promo">دعائي</button>
+      </div>
+
+      <div class="video-grid" id="videoGrid"></div>
+
+      <div class="testi-empty" id="videoEmpty" hidden>
+        <p>سيتم عرض الفيديوهات هنا فور إضافتها.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ تابعنا على فيسبوك — تضمين حي يتحدث تلقائياً ============ -->
+  <section class="section--tight section--bone">
+    <div class="container" style="max-width:640px;text-align:center;">
+      <span class="eyebrow" style="justify-content:center;">مباشر من صفحتنا</span>
+      <h2 class="h-title" style="font-size:clamp(26px,4vw,38px);">تابعنا على فيسبوك</h2>
+      <p class="lede" style="margin:14px auto 34px;">
+        هذا القسم متصل مباشرة بصفحة فيسبوك الرسمية لدار الإتقان — أي منشور أو فيديو جديد يُنشر هناك يظهر هنا تلقائياً دون أي تدخل يدوي.
+      </p>
+      <div id="fbPageEmbed" style="display:flex;justify-content:center;"></div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <h2>عندك فكرة تريد رؤيتها منفَّذة؟</h2>
+    <p>تواصل معنا وسنحوّلها إلى مساحة حقيقية بنفس مستوى الدقة الذي تراه في أعمالنا.</p>
+    <div class="cta-actions">
+      <a href="contact.html" class="btn btn--primary">اطلب استشارتك</a>
+      <a href="#" id="ctaWaLink" class="btn btn--wa">واتساب</a>
+    </div>
+  </section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/projects.js"></script>
+<script src="js/videos.js"></script>
+<script src="js/draft-merge.js"></script>
+<script src="js/main.js"></script>
+<script>
+  function categoryLabel(cat, lang) {
+    const map = {
+      kitchens: { ar: "مطابخ", en: "Kitchens" },
+      wardrobes: { ar: "خزائن ملابس", en: "Wardrobes" },
+      bedrooms: { ar: "غرف نوم", en: "Bedrooms" },
+      decor: { ar: "ديكورات", en: "Decor" },
+      promo: { ar: "دعائي", en: "Promo" },
+    };
+    return (map[cat] && map[cat][lang]) || cat;
+  }
+
+  // يبني رابط تضمين فيسبوك (Video/Post Plugin) بدون أي مفتاح API
+  function fbPlayerEmbed(url) {
+    const src = "https://www.facebook.com/plugins/video.php?href=" + encodeURIComponent(url) + "&show_text=false&width=560";
+    return `<iframe src="${src}" width="100%" height="315" style="border:0;overflow:hidden;max-width:560px;" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" loading="lazy"></iframe>`;
+  }
+  function youtubeEmbed(url) {
+    let id = "";
+    try {
+      const u = new URL(url);
+      id = u.searchParams.get("v") || u.pathname.split("/").pop();
+    } catch (e) {}
+    return `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${id}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const wa = document.getElementById("ctaWaLink");
+    if (wa) wa.href = getWhatsAppLink();
+
+    const lang = document.documentElement.lang === "en" ? "en" : "ar";
+    const grid = document.getElementById("videoGrid");
+    const empty = document.getElementById("videoEmpty");
+    const bar = document.getElementById("videoFilterBar");
+    const list = (window.VIDEOS || []);
+
+    if (!list.length) {
+      grid.hidden = true;
+      bar.hidden = true;
+      empty.hidden = false;
+    } else {
+      grid.innerHTML = list.map((v) => `
+        <div class="video-card reveal" data-category="${v.category || "promo"}" data-video-id="${v.id || ""}">
+          <div class="video-card-frame">${v.type === "youtube" ? youtubeEmbed(v.url) : v.type === "file" ? `<video src="${v.url}" controls preload="metadata"></video>` : fbPlayerEmbed(v.url)}</div>
+          <div class="video-card-cap">
+            <span class="cat">${categoryLabel(v.category, lang)}</span>
+            <h4>${(v.title && v.title[lang]) || ""}</h4>
+          </div>
+        </div>`).join("");
+      document.querySelectorAll(".video-card.reveal").forEach((el) => el.classList.add("is-visible"));
+
+      bar.addEventListener("click", (e) => {
+        const btn = e.target.closest(".filter-btn");
+        if (!btn) return;
+        bar.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        const cat = btn.dataset.filter;
+        grid.querySelectorAll(".video-card").forEach((it) => {
+          it.style.display = cat === "all" || it.dataset.category === cat ? "" : "none";
+        });
+      });
+    }
+
+    // تضمين صفحة فيسبوك الحي (Page Plugin) — يعمل تلقائياً بدون إعداد إضافي
+    const fbUrl = (SITE_CONFIG.social.facebook || "").split("?")[0];
+    if (fbUrl && !fbUrl.includes("[")) {
+      document.getElementById("fbPageEmbed").innerHTML = `
+        <iframe src="https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(fbUrl)}&tabs=timeline&width=500&height=650&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true"
+          width="500" height="650" style="border:none;overflow:hidden;max-width:100%;" scrolling="no" frameborder="0"
+          allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" loading="lazy"></iframe>`;
+    }
+  });
+</script>
+<script src="js/owner.js"></script>
+</body>
+</html>

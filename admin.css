@@ -1,0 +1,105 @@
+/* =========================================================
+   دار الإتقان — لوحة التحكم (Admin)
+   يعتمد على متغيرات css/style.css نفسها
+   ========================================================= */
+body.admin-body{background:var(--bone);min-height:100vh;}
+
+/* ---------- Login gate ---------- */
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.gate-box{
+  background:var(--ivory);border:1px solid var(--line-dark);padding:48px 40px;max-width:380px;width:100%;
+  text-align:center;
+}
+.gate-box h1{font-size:22px;margin-bottom:6px;}
+.gate-box p{color:#6b6559;font-size:14px;margin-bottom:24px;}
+.gate-box input{
+  width:100%;padding:14px 16px;border:1px solid var(--line-dark);font-size:15px;text-align:center;
+  margin-bottom:14px;font-family:inherit;
+}
+.gate-err{color:#b23; font-size:13px;min-height:18px;margin-bottom:8px;}
+
+/* ---------- Shell layout ---------- */
+.admin-shell{display:none;min-height:100vh;grid-template-columns:240px 1fr;}
+.admin-shell.is-active{display:grid;}
+.admin-side{background:var(--charcoal);color:var(--ivory);padding:28px 18px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.admin-side .brand-ar{font-family:var(--font-display);font-size:19px;color:var(--ivory);display:block;margin-bottom:2px;}
+.admin-side .brand-sub{font-size:11px;color:var(--bronze-light);letter-spacing:1.5px;}
+.admin-nav{margin-top:34px;display:flex;flex-direction:column;gap:4px;}
+.admin-nav button{
+  display:flex;align-items:center;gap:10px;background:none;border:0;color:rgba(246,241,231,.72);
+  text-align:start;padding:12px 14px;font-size:14px;border-radius:2px;transition:.25s;
+}
+.admin-nav button:hover{background:rgba(246,241,231,.06);color:var(--ivory);}
+.admin-nav button.is-active{background:var(--bronze);color:var(--charcoal);font-weight:700;}
+.admin-side .view-site{
+  margin-top:30px;display:block;font-size:13px;color:var(--bronze-light);border-top:1px solid rgba(246,241,231,.14);
+  padding-top:20px;
+}
+.admin-side .logout-btn{
+  margin-top:10px;background:none;border:1px solid rgba(246,241,231,.25);color:var(--ivory);
+  padding:9px 12px;font-size:12.5px;width:100%;
+}
+
+.admin-main{padding:36px 40px 80px;max-width:980px;}
+.admin-panel{display:none;}
+.admin-panel.is-active{display:block;}
+.admin-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px;}
+.admin-head h2{font-size:26px;}
+.admin-head p{color:#6b6559;font-size:14px;margin-top:6px;max-width:560px;}
+
+.notice{
+  background:#FBF3E4;border-inline-start:3px solid var(--bronze);padding:16px 18px;font-size:13.5px;
+  color:#4A453D;margin:20px 0;line-height:1.9;
+}
+.notice.ok{background:#EAF6EC;border-color:#3C9A5C;}
+.notice ol,.notice ul{margin-inline-start:20px;margin-top:6px;}
+
+/* ---------- Buttons (admin-scoped) ---------- */
+.a-btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;font-size:13.5px;font-weight:700;
+  border:1px solid var(--charcoal);background:var(--charcoal);color:var(--ivory);transition:.25s;
+}
+.a-btn:hover{background:var(--bronze);border-color:var(--bronze);color:var(--charcoal);}
+.a-btn.outline{background:transparent;color:var(--charcoal);}
+.a-btn.outline:hover{background:var(--charcoal);color:var(--ivory);}
+.a-btn.danger{background:transparent;border-color:#b23;color:#b23;}
+.a-btn.danger:hover{background:#b23;color:#fff;}
+.a-btn.sm{padding:7px 14px;font-size:12.5px;}
+.a-actions{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0;}
+
+/* ---------- Table ---------- */
+.a-table{width:100%;border-collapse:collapse;margin-top:22px;background:var(--ivory);}
+.a-table th,.a-table td{padding:12px 14px;border-bottom:1px solid var(--line-dark);font-size:13.5px;text-align:start;vertical-align:middle;}
+.a-table th{font-size:11.5px;letter-spacing:1px;color:#8a8375;text-transform:uppercase;}
+.a-thumb{width:56px;height:56px;object-fit:cover;background:var(--bone);flex-shrink:0;}
+.a-thumb-ph{width:56px;height:56px;background:var(--bone);display:flex;align-items:center;justify-content:center;font-size:10px;color:#a39c8a;}
+.a-row-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* ---------- Form ---------- */
+.a-form{background:var(--ivory);border:1px solid var(--line-dark);padding:28px;margin-top:22px;}
+.a-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:640px){.a-grid{grid-template-columns:1fr;}}
+.a-field{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.a-field.full{grid-column:1/-1;}
+.a-field label{font-size:12.5px;font-weight:700;color:var(--ink);}
+.a-field .sub{font-weight:400;color:#8a8375;font-size:11.5px;}
+.a-field input[type=text],.a-field input[type=url],.a-field input[type=email],.a-field input[type=tel],
+.a-field select,.a-field textarea{
+  padding:12px 14px;border:1px solid var(--line-dark);font-family:inherit;font-size:14px;background:#fff;
+}
+.a-field textarea{resize:vertical;min-height:90px;}
+.a-field input[type=file]{padding:10px 0;font-size:13px;}
+.a-thumbs-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+.a-thumb-item{position:relative;width:70px;height:70px;}
+.a-thumb-item img{width:100%;height:100%;object-fit:cover;}
+.a-thumb-item button{
+  position:absolute;top:-7px;inset-inline-end:-7px;width:20px;height:20px;border-radius:50%;
+  background:#b23;color:#fff;border:0;font-size:12px;line-height:1;
+}
+.a-form-actions{display:flex;gap:12px;margin-top:10px;}
+
+/* ---------- Empty state ---------- */
+.a-empty{border:1px dashed var(--line-dark);padding:34px;text-align:center;color:#8a8375;font-size:14px;margin-top:20px;}
+
+/* ---------- Facebook preview box ---------- */
+.fb-preview{margin-top:20px;padding:18px;background:var(--ivory);border:1px solid var(--line-dark);}

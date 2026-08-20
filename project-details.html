@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title id="pageTitle">تفاصيل المشروع | دار الإتقان للمطابخ والديكور</title>
+<meta name="description" id="pageDesc" content="تفاصيل مشروع من أعمال دار الإتقان للمطابخ والديكور." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@500;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="portfolio">
+<a href="#main" class="skip-link">تخطَّ إلى المحتوى</a>
+<div id="site-header"></div>
+
+<main id="main">
+  <div id="projectContent"></div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/projects.js"></script>
+<script src="js/draft-merge.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const lang = document.documentElement.lang === "en" ? "en" : "ar";
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+    const project = PROJECTS.find((p) => p.id === id) || PROJECTS[0];
+    const el = document.getElementById("projectContent");
+
+    document.getElementById("pageTitle").textContent = `${project.title[lang]} | دار الإتقان للمطابخ والديكور`;
+    document.getElementById("pageDesc").setAttribute("content", project.description[lang]);
+    document.body.dataset.ownerProjectId = project.id; // يُستخدم في owner.js لإظهار زر "تعديل هذا المشروع" لصاحب الموقع فقط
+
+    const categoryLabel = { kitchens: "مطابخ", wardrobes: "خزائن ملابس", bedrooms: "غرف نوم", decor: "ديكورات" }[project.category] || project.category;
+
+    el.innerHTML = `
+      <section class="hero" style="min-height:60svh;">
+        <div class="hero-media"><img src="${project.cover}" alt="${project.title[lang]}" /></div>
+        <div class="container hero-content" style="padding-bottom:60px;">
+          <div class="hero-kicker reveal is-visible">${categoryLabel}</div>
+          <h1 class="reveal is-visible" style="font-size:clamp(30px,5vw,58px);">${project.title[lang]}</h1>
+          <p class="hero-tagline reveal is-visible">${project.location[lang]}</p>
+        </div>
+      </section>
+
+      <section class="section--tight">
+        <div class="container" style="max-width:820px;">
+          <span class="eyebrow">عن المشروع</span>
+          <p class="lede" style="font-size:19px;">${project.description[lang]}</p>
+        </div>
+      </section>
+
+      ${
+        project.gallery.length > 1
+          ? `<section class="section--tight section--bone">
+              <div class="container">
+                <span class="eyebrow">معرض الصور</span>
+                <h2 class="h-sub">صور إضافية للمشروع</h2>
+                <div class="masonry" id="projGallery" style="margin-top:30px;"></div>
+              </div>
+            </section>`
+          : ""
+      }
+
+      <section class="cta-band">
+        <h2>أريد تصميمًا مشابهًا</h2>
+        <p>أخبرنا عن مساحتك وسنقترح تصميماً يعكس هذا الأسلوب.</p>
+        <div class="cta-actions">
+          <a href="contact.html?ref=${project.id}" class="btn btn--primary">أريد تصميمًا مشابهًا</a>
+          <a href="#" id="ctaWaLink" class="btn btn--wa">واتساب</a>
+        </div>
+      </section>
+    `;
+
+    const wa = document.getElementById("ctaWaLink");
+    if (wa) wa.href = getWhatsAppLink(`أعجبني تصميم "${project.title.ar}" وأرغب بشيء مشابه.`);
+
+    const galleryGrid = document.getElementById("projGallery");
+    if (galleryGrid) {
+      galleryGrid.innerHTML = project.gallery
+        .map((src) => `<div class="m-item"><div class="m-media"><img src="${src}" alt="${project.title[lang]}" loading="lazy" /></div></div>`)
+        .join("");
+      initLightboxLocal(galleryGrid);
+    }
+  });
+
+  function initLightboxLocal(container) {
+    const items = Array.from(container.querySelectorAll(".m-item"));
+    if (items.length === 0) return;
+    const lb = document.createElement("div");
+    lb.className = "lightbox";
+    lb.innerHTML = `<button class="lb-close" aria-label="إغلاق">&times;</button><button class="lb-prev" aria-label="السابق">&#8594;</button><div class="lb-stage"></div><button class="lb-next" aria-label="التالي">&#8592;</button><div class="lb-counter"></div>`;
+    document.body.appendChild(lb);
+    const stage = lb.querySelector(".lb-stage");
+    const counter = lb.querySelector(".lb-counter");
+    let idx = 0;
+    function open(i) {
+      idx = ((i % items.length) + items.length) % items.length;
+      stage.innerHTML = items[idx].querySelector(".m-media").innerHTML;
+      counter.textContent = `${idx + 1} / ${items.length}`;
+      lb.classList.add("is-open");
+      document.body.style.overflow = "hidden";
+    }
+    function close() {
+      lb.classList.remove("is-open");
+      document.body.style.overflow = "";
+    }
+    items.forEach((it, i) => it.addEventListener("click", () => open(i)));
+    lb.querySelector(".lb-close").addEventListener("click", close);
+    lb.addEventListener("click", (e) => e.target === lb && close());
+    lb.querySelector(".lb-prev").addEventListener("click", () => open(idx + 1));
+    lb.querySelector(".lb-next").addEventListener("click", () => open(idx - 1));
+  }
+</script>
+<script src="js/owner.js"></script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>معرض الأعمال | دار الإتقان للمطابخ والديكور</title>
+<meta name="description" content="استعرض مشاريع دار الإتقان الفعلية من المعرض: مطابخ، خزائن ملابس، غرف نوم، وديكورات داخلية بتنفيذ دقيق." />
+<link rel="canonical" href="https://ahmed.github.io/dar-al-itqan/portfolio.html" />
+<meta property="og:title" content="معرض أعمال دار الإتقان" />
+<meta property="og:image" content="images/projects/kitchen-charcoal-marble-1.jpg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@500;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="portfolio">
+<a href="#main" class="skip-link">تخطَّ إلى المحتوى</a>
+<div id="site-header"></div>
+
+<main id="main">
+  <section class="section--tight section--dark" style="padding-top:150px;">
+    <div class="container">
+      <span class="eyebrow">أعمالنا</span>
+      <h1 class="h-title">معرض الأعمال</h1>
+      <p class="lede" style="margin-top:16px;color:rgba(246,241,231,.75);">صور حقيقية من معرض دار الإتقان — كل قطعة صُممت ونُفذت بدقة تراعي التفاصيل.</p>
+    </div>
+  </section>
+
+  <section class="section--tight">
+    <div class="container">
+      <div class="filter-bar">
+        <button class="filter-btn is-active" data-filter="all">الكل</button>
+        <button class="filter-btn" data-filter="kitchens">المطابخ</button>
+        <button class="filter-btn" data-filter="wardrobes">خزائن الملابس</button>
+        <button class="filter-btn" data-filter="bedrooms">غرف النوم</button>
+        <button class="filter-btn" data-filter="decor">ديكورات أخرى</button>
+      </div>
+      <div class="masonry" id="portfolioGrid"></div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <h2>أعجبك أحد التصاميم؟</h2>
+    <p>يمكننا تصميم مساحة مشابهة تناسب أبعاد ومتطلبات مكانك.</p>
+    <div class="cta-actions">
+      <a href="contact.html" class="btn btn--primary">أريد تصميمًا مشابهًا</a>
+      <a href="#" id="ctaWaLink" class="btn btn--wa">واتساب</a>
+    </div>
+  </section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/projects.js"></script>
+<script src="js/draft-merge.js"></script>
+<script src="js/main.js"></script>
+<script>
+  function categoryLabel(cat, lang) {
+    const map = {
+      kitchens: { ar: "مطابخ", en: "Kitchens" },
+      wardrobes: { ar: "خزائن ملابس", en: "Wardrobes" },
+      bedrooms: { ar: "غرف نوم", en: "Bedrooms" },
+      decor: { ar: "ديكورات", en: "Decor" },
+    };
+    return (map[cat] && map[cat][lang]) || cat;
+  }
+  document.addEventListener("DOMContentLoaded", () => {
+    const wa = document.getElementById("ctaWaLink");
+    if (wa) wa.href = getWhatsAppLink();
+
+    const grid = document.getElementById("portfolioGrid");
+    const lang = document.documentElement.lang === "en" ? "en" : "ar";
+    grid.innerHTML = PROJECTS.map(
+      (p) => `
+      <div class="m-item reveal" data-category="${p.category}" data-project-id="${p.id}">
+        <div class="m-media"><img src="${p.cover}" alt="${p.title[lang]}" loading="lazy" /></div>
+        <div class="m-caption"><span class="cat">${categoryLabel(p.category, lang)}</span><h4>${p.title[lang]}</h4></div>
+      </div>`
+    ).join("");
+
+    // re-init reveal + lightbox now that grid exists (main.js already ran on DOMContentLoaded before this,
+    // so trigger a lightweight re-init here)
+    document.querySelectorAll(".reveal").forEach((el) => el.classList.add("is-visible"));
+    initLightboxStandalone();
+
+    const bar = document.querySelector(".filter-bar");
+    bar.addEventListener("click", (e) => {
+      const btn = e.target.closest(".filter-btn");
+      if (!btn) return;
+      bar.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      const cat = btn.dataset.filter;
+      grid.querySelectorAll(".m-item").forEach((it) => {
+        it.style.display = cat === "all" || it.dataset.category === cat ? "" : "none";
+      });
+    });
+  });
+
+  function initLightboxStandalone() {
+    const items = Array.from(document.querySelectorAll(".m-item"));
+    if (items.length === 0) return;
+    const lb = document.createElement("div");
+    lb.className = "lightbox";
+    lb.innerHTML = `
+      <button class="lb-close" aria-label="إغلاق">&times;</button>
+      <button class="lb-prev" aria-label="السابق">&#8594;</button>
+      <div class="lb-stage"></div>
+      <button class="lb-next" aria-label="التالي">&#8592;</button>
+      <div class="lb-counter"></div>`;
+    document.body.appendChild(lb);
+    const stage = lb.querySelector(".lb-stage");
+    const counter = lb.querySelector(".lb-counter");
+    let idx = 0;
+    function visibleItems() {
+      return items.filter((it) => it.style.display !== "none");
+    }
+    function open(i) {
+      const vis = visibleItems();
+      idx = ((i % vis.length) + vis.length) % vis.length;
+      stage.innerHTML = vis[idx].querySelector(".m-media").innerHTML;
+      counter.textContent = `${idx + 1} / ${vis.length}`;
+      lb.classList.add("is-open");
+      document.body.style.overflow = "hidden";
+    }
+    function close() {
+      lb.classList.remove("is-open");
+      document.body.style.overflow = "";
+    }
+    items.forEach((it) => it.addEventListener("click", () => open(visibleItems().indexOf(it))));
+    lb.querySelector(".lb-close").addEventListener("click", close);
+    lb.addEventListener("click", (e) => e.target === lb && close());
+    lb.querySelector(".lb-prev").addEventListener("click", () => open(idx + 1));
+    lb.querySelector(".lb-next").addEventListener("click", () => open(idx - 1));
+    document.addEventListener("keydown", (e) => {
+      if (!lb.classList.contains("is-open")) return;
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowLeft") open(idx + 1);
+      if (e.key === "ArrowRight") open(idx - 1);
+    });
+  }
+</script>
+<script src="js/owner.js"></script>
+</body>
+</html>

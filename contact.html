@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>تواصل معنا | دار الإتقان للمطابخ والديكور</title>
+<meta name="description" content="تواصل مع دار الإتقان للمطابخ والديكور — اطلب استشارتك المجانية عبر النموذج أو واتساب أو الهاتف." />
+<link rel="canonical" href="https://ahmed.github.io/dar-al-itqan/contact.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@500;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="contact">
+<a href="#main" class="skip-link">تخطَّ إلى المحتوى</a>
+<div id="site-header"></div>
+
+<main id="main">
+  <section class="section--tight section--dark" style="padding-top:150px;">
+    <div class="container">
+      <span class="eyebrow">تواصل معنا</span>
+      <h1 class="h-title">لنبدأ الحديث عن مشروعك</h1>
+      <p class="lede" style="margin-top:16px;color:rgba(246,241,231,.75);">عبّئ النموذج أدناه أو تواصل معنا مباشرة عبر واتساب أو الهاتف.</p>
+    </div>
+  </section>
+
+  <!-- Contact info -->
+  <section class="section--tight">
+    <div class="container">
+      <div class="info-grid">
+        <div class="info-card reveal">
+          <div class="lbl">الهاتف</div>
+          <div class="val" id="infoPhone"></div>
+        </div>
+        <div class="info-card reveal">
+          <div class="lbl">واتساب</div>
+          <div class="val"><a href="#" id="infoWaLink"></a></div>
+        </div>
+        <div class="info-card reveal">
+          <div class="lbl">البريد الإلكتروني</div>
+          <div class="val" id="infoEmail"></div>
+        </div>
+        <div class="info-card reveal">
+          <div class="lbl">العنوان</div>
+          <div class="val" id="infoAddress"></div>
+        </div>
+        <div class="info-card reveal">
+          <div class="lbl">ساعات العمل</div>
+          <div class="val" id="infoHours"></div>
+        </div>
+        <div class="info-card reveal">
+          <div class="lbl">تابعنا</div>
+          <div class="val" id="infoSocial"></div>
+        </div>
+      </div>
+
+      <div class="map-wrap reveal" id="mapWrap"></div>
+    </div>
+  </section>
+
+  <!-- Consultation form -->
+  <section class="section section--bone">
+    <div class="container" style="max-width:900px;">
+      <div class="reveal">
+        <span class="eyebrow">نموذج طلب استشارة</span>
+        <h2 class="h-title">أخبرنا عن مشروعك</h2>
+      </div>
+      <form id="consultForm" class="form-grid reveal" novalidate>
+        <div class="field">
+          <label for="f-name">الاسم</label>
+          <input id="f-name" name="name" type="text" required />
+        </div>
+        <div class="field">
+          <label for="f-phone">رقم الهاتف</label>
+          <input id="f-phone" name="phone" type="tel" required />
+        </div>
+        <div class="field">
+          <label for="f-whatsapp">رقم واتساب</label>
+          <input id="f-whatsapp" name="whatsapp" type="tel" />
+        </div>
+        <div class="field">
+          <label for="f-city">المدينة / الولاية</label>
+          <input id="f-city" name="city" type="text" />
+        </div>
+        <div class="field">
+          <label for="f-type">نوع المشروع</label>
+          <select id="f-type" name="projectType">
+            <option value="مطبخ">مطبخ</option>
+            <option value="خزانة ملابس / دريسنج روم">خزانة ملابس / دريسنج روم</option>
+            <option value="غرفة نوم">غرفة نوم</option>
+            <option value="ديكور داخلي">ديكور داخلي</option>
+            <option value="أخرى">أخرى</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-area">المساحة التقريبية (م²)</label>
+          <input id="f-area" name="area" type="text" />
+        </div>
+        <div class="field">
+          <label for="f-service">الخدمة المطلوبة</label>
+          <input id="f-service" name="service" type="text" placeholder="مثال: تصميم وتنفيذ مطبخ كامل" />
+        </div>
+        <div class="field">
+          <label for="f-budget">الميزانية التقريبية (اختياري)</label>
+          <input id="f-budget" name="budget" type="text" />
+        </div>
+        <div class="field full">
+          <label for="f-time">موعد التواصل المفضل</label>
+          <input id="f-time" name="preferredTime" type="text" placeholder="مثال: صباحاً / مساءً / أيام محددة" />
+        </div>
+        <div class="field full">
+          <label for="f-details">تفاصيل المشروع</label>
+          <textarea id="f-details" name="details" placeholder="أخبرنا المزيد عن فكرتك ومتطلباتك..."></textarea>
+        </div>
+        <div class="field full">
+          <label for="f-file">رفع صور أو مخطط للمكان (اختياري)</label>
+          <div class="file-drop">
+            <input id="f-file" name="attachment" type="file" style="display:none" />
+            <span id="fileLabel">اضغط لاختيار ملف، أو أرفقه لاحقاً عبر واتساب</span>
+          </div>
+        </div>
+        <div class="field full">
+          <button type="submit" class="btn btn--primary" style="width:100%;justify-content:center;">إرسال طلب الاستشارة</button>
+          <p id="formNote" style="margin-top:14px;font-size:13.5px;color:#4A453D;"></p>
+        </div>
+      </form>
+      <p style="margin-top:8px;color:#847b6b;font-size:12.5px;">
+        * يقوم النموذج حالياً بتجهيز طلبك وإرساله عبر واتساب مباشرة. يمكن لاحقاً ربطه بخدمة بريد إلكتروني أو نظام إدارة طلبات (CRM) خاص بالمكتب.
+      </p>
+    </div>
+  </section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/draft-merge.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const c = SITE_CONFIG.contact;
+    document.getElementById("infoPhone").textContent = c.phone;
+    document.getElementById("infoEmail").textContent = c.email;
+    document.getElementById("infoAddress").textContent = c.address.ar;
+    document.getElementById("infoHours").textContent = c.workingHours.ar;
+
+    const waLink = document.getElementById("infoWaLink");
+    waLink.href = getWhatsAppLink();
+    waLink.textContent = c.phone;
+
+    const social = document.getElementById("infoSocial");
+    const links = [];
+    if (SITE_CONFIG.social.facebook) links.push(`<a href="${SITE_CONFIG.social.facebook}" target="_blank" rel="noopener">فيسبوك</a>`);
+    if (SITE_CONFIG.social.instagram && !SITE_CONFIG.social.instagram.startsWith("[")) links.push(`<a href="${SITE_CONFIG.social.instagram}" target="_blank" rel="noopener">إنستغرام</a>`);
+    if (SITE_CONFIG.social.tiktok && !SITE_CONFIG.social.tiktok.startsWith("[")) links.push(`<a href="${SITE_CONFIG.social.tiktok}" target="_blank" rel="noopener">تيك توك</a>`);
+    social.innerHTML = links.join(" &nbsp;|&nbsp; ");
+
+    const mapWrap = document.getElementById("mapWrap");
+    const mapsSrc = getGoogleMapsSrc();
+    if (mapsSrc) {
+      mapWrap.innerHTML = `<iframe src="${mapsSrc}" loading="lazy" allowfullscreen title="موقع دار الإتقان على الخريطة"></iframe>`;
+    } else {
+      mapWrap.innerHTML = `<span>سيتم عرض الخريطة هنا بمجرد إضافة عنوان المعرض من لوحة التحكم (تبويب "بيانات الشركة").</span>`;
+    }
+
+    const fileInput = document.getElementById("f-file");
+    const fileDrop = document.querySelector(".file-drop");
+    fileDrop.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", () => {
+      document.getElementById("fileLabel").textContent = fileInput.files[0] ? fileInput.files[0].name : "اضغط لاختيار ملف";
+    });
+
+    const ref = new URLSearchParams(location.search).get("ref");
+    if (ref) {
+      document.getElementById("f-details").value = `مرجع المشروع: ${ref}\n`;
+    }
+  });
+</script>
+<script src="js/owner.js"></script>
+</body>
+</html>

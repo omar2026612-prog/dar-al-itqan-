@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>لوحة التحكم | دار الإتقان</title>
+<meta name="robots" content="noindex,nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@500;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/admin.css" />
+</head>
+<body class="admin-body">
+
+<!-- ============ شاشة الدخول ============ -->
+<div class="gate" id="gate">
+  <div class="gate-box">
+    <h1>لوحة تحكم دار الإتقان</h1>
+    <p>أدخل كلمة المرور الخاصة بإدارة الموقع</p>
+    <div style="display:flex; gap:8px;">
+      <input type="password" id="gatePass" placeholder="كلمة المرور" autocomplete="off" style="flex:1;" />
+      <button type="button" id="gateShowPass" class="a-btn" style="white-space:nowrap;">إظهار</button>
+    </div>
+    <div class="gate-err" id="gateErr"></div>
+    <button class="a-btn" style="width:100%;justify-content:center;" id="gateBtn">دخول</button>
+  </div>
+</div>
+
+<!-- ============ لوحة التحكم ============ -->
+<div class="admin-shell" id="shell">
+  <aside class="admin-side">
+    <span class="brand-ar">دار الإتقان</span>
+    <span class="brand-sub">لوحة التحكم</span>
+    <nav class="admin-nav" id="adminNav">
+      <button data-panel="projects" class="is-active">🗂️ المشاريع</button>
+      <button data-panel="videos">🎬 الفيديوهات</button>
+      <button data-panel="facebook">📘 ربط فيسبوك</button>
+      <button data-panel="company">🏷️ بيانات الشركة</button>
+      <button data-panel="help">❓ طريقة الاستخدام</button>
+    </nav>
+    <a href="index.html" class="view-site" target="_blank">↗ عرض الموقع</a>
+    <button class="logout-btn" id="logoutBtn">تسجيل الخروج</button>
+  </aside>
+
+  <main class="admin-main">
+
+    <!-- ===================== المشاريع ===================== -->
+    <section class="admin-panel is-active" id="panel-projects">
+      <div class="admin-head">
+        <div>
+          <h2>المشاريع</h2>
+          <p>كل مشروع يظهر في معرض الأعمال والصفحة الرئيسية. التعديلات هنا تظهر فوراً في معاينتك الخاصة؛ لنشرها لكل الزوار نزّل الملف وارفعه (راجع "طريقة الاستخدام").</p>
+        </div>
+      </div>
+      <div class="a-actions">
+        <button class="a-btn" id="newProjectBtn">+ مشروع جديد</button>
+        <button class="a-btn outline" id="exportProjectsBtn">⬇ تنزيل ملف المشاريع (projects.js)</button>
+      </div>
+
+      <table class="a-table" id="projectsTable">
+        <thead>
+          <tr><th>الصورة</th><th>الاسم</th><th>التصنيف</th><th></th></tr>
+        </thead>
+        <tbody id="projectsTbody"></tbody>
+      </table>
+      <div class="a-empty" id="projectsEmpty" hidden>لا توجد مشاريع بعد — اضغط "مشروع جديد" لإضافة أول مشروع.</div>
+
+      <!-- نموذج إضافة/تعديل مشروع -->
+      <form class="a-form" id="projectForm" hidden>
+        <h3 id="projectFormTitle" style="margin-bottom:18px;">مشروع جديد</h3>
+        <div class="a-grid">
+          <div class="a-field">
+            <label>اسم المشروع (عربي) *</label>
+            <input type="text" id="pTitleAr" required />
+          </div>
+          <div class="a-field">
+            <label>Project name (English)</label>
+            <input type="text" id="pTitleEn" />
+          </div>
+          <div class="a-field">
+            <label>التصنيف *</label>
+            <select id="pCategory" required>
+              <option value="kitchens">مطابخ</option>
+              <option value="wardrobes">خزائن ملابس</option>
+              <option value="bedrooms">غرف نوم</option>
+              <option value="decor">ديكورات أخرى</option>
+            </select>
+          </div>
+          <div class="a-field">
+            <label>الموقع / مكان التنفيذ <span class="sub">(اختياري)</span></label>
+            <input type="text" id="pLocation" placeholder="مثال: صحار — عمان" />
+          </div>
+          <div class="a-field full">
+            <label>الوصف (عربي)</label>
+            <textarea id="pDescAr" placeholder="وصف مختصر ودقيق للمشروع..."></textarea>
+          </div>
+          <div class="a-field full">
+            <label>Description (English) <span class="sub">اختياري</span></label>
+            <textarea id="pDescEn"></textarea>
+          </div>
+          <div class="a-field full">
+            <label>الصورة الرئيسية (الغلاف) *</label>
+            <input type="file" id="pCoverFile" accept="image/*" />
+            <div class="a-thumbs-row" id="pCoverPreview"></div>
+          </div>
+          <div class="a-field full">
+            <label>صور إضافية للمشروع <span class="sub">(يمكن اختيار أكثر من صورة)</span></label>
+            <input type="file" id="pGalleryFile" accept="image/*" multiple />
+            <div class="a-thumbs-row" id="pGalleryPreview"></div>
+          </div>
+        </div>
+        <div class="notice">
+          الصور المرفوعة هنا للمعاينة فقط داخل متصفحك. عند "تنزيل ملف المشاريع" ستحصل أيضاً على الصور بأسمائها الصحيحة — ضعها داخل مجلد <b>images/projects/</b> على الاستضافة ليظهر المشروع بشكل صحيح لجميع الزوار.
+        </div>
+        <div class="a-form-actions">
+          <button type="submit" class="a-btn">حفظ المشروع</button>
+          <button type="button" class="a-btn outline" id="cancelProjectBtn">إلغاء</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===================== الفيديوهات ===================== -->
+    <section class="admin-panel" id="panel-videos">
+      <div class="admin-head">
+        <div>
+          <h2>الفيديوهات</h2>
+          <p>ألصق رابط فيديو من فيسبوك أو يوتيوب وسيظهر مباشرة في صفحة "الفيديوهات" على الموقع.</p>
+        </div>
+      </div>
+      <div class="a-actions">
+        <button class="a-btn" id="newVideoBtn">+ فيديو جديد</button>
+        <button class="a-btn outline" id="exportVideosBtn">⬇ تنزيل ملف الفيديوهات (videos.js)</button>
+      </div>
+
+      <table class="a-table" id="videosTable">
+        <thead><tr><th>العنوان</th><th>المصدر</th><th>التصنيف</th><th></th></tr></thead>
+        <tbody id="videosTbody"></tbody>
+      </table>
+      <div class="a-empty" id="videosEmpty" hidden>لا توجد فيديوهات بعد — أضف أول فيديو دعائي أو فيديو مشروع.</div>
+
+      <form class="a-form" id="videoForm" hidden>
+        <h3 id="videoFormTitle" style="margin-bottom:18px;">فيديو جديد</h3>
+        <div class="a-grid">
+          <div class="a-field full">
+            <label>رابط الفيديو (فيسبوك أو يوتيوب) *</label>
+            <input type="url" id="vUrl" placeholder="https://www.facebook.com/itqank/videos/..." required />
+            <span class="sub" id="vTypeDetected"></span>
+          </div>
+          <div class="a-field">
+            <label>عنوان الفيديو (عربي) *</label>
+            <input type="text" id="vTitleAr" required />
+          </div>
+          <div class="a-field">
+            <label>Video title (English)</label>
+            <input type="text" id="vTitleEn" />
+          </div>
+          <div class="a-field">
+            <label>التصنيف</label>
+            <select id="vCategory">
+              <option value="promo">دعائي عام</option>
+              <option value="kitchens">مطابخ</option>
+              <option value="wardrobes">خزائن ملابس</option>
+              <option value="bedrooms">غرف نوم</option>
+              <option value="decor">ديكورات</option>
+            </select>
+          </div>
+        </div>
+        <div class="a-form-actions">
+          <button type="submit" class="a-btn">حفظ الفيديو</button>
+          <button type="button" class="a-btn outline" id="cancelVideoBtn">إلغاء</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===================== ربط فيسبوك ===================== -->
+    <section class="admin-panel" id="panel-facebook">
+      <div class="admin-head">
+        <div>
+          <h2>ربط الموقع بصفحة فيسبوك</h2>
+          <p>طريقتان تلقائيتان لنقل نشاطك على فيسبوك إلى الموقع دون عمل مزدوج.</p>
+        </div>
+      </div>
+
+      <div class="notice ok">
+        <b>١) التغذية المباشرة (مُفعّلة تلقائياً الآن)</b><br/>
+        صفحة <a href="videos.html" target="_blank" style="color:#2e7d46;text-decoration:underline;">الفيديوهات</a> على موقعك تعرض بشكل مباشر آخر منشورات صفحتكم
+        <span data-cfg-fb-url></span> على فيسبوك — أي منشور جديد يظهر هناك تلقائياً بدون أي خطوة إضافية منك.
+      </div>
+
+      <div class="notice">
+        <b>٢) تمييز فيديو أو منشور معيّن في الموقع</b><br/>
+        إذا نشرتم فيديو مهم على فيسبوك وتريدون عرضه بشكل بارز في صفحة "الفيديوهات"، الصقوا رابطه هنا:
+      </div>
+
+      <div class="a-form" style="margin-top:0;">
+        <div class="a-field full">
+          <label>رابط منشور أو فيديو فيسبوك</label>
+          <input type="url" id="fbImportUrl" placeholder="https://www.facebook.com/itqank/videos/..." />
+        </div>
+        <div class="a-form-actions">
+          <button type="button" class="a-btn" id="fbImportBtn">معاينة</button>
+        </div>
+        <div class="fb-preview" id="fbImportPreview" hidden></div>
+      </div>
+    </section>
+
+    <!-- ===================== بيانات الشركة ===================== -->
+    <section class="admin-panel" id="panel-company">
+      <div class="admin-head">
+        <div>
+          <h2>بيانات الشركة</h2>
+          <p>هذه البيانات تظهر في كل صفحات الموقع (الهيدر، الفوتر، زر واتساب، صفحة التواصل).</p>
+        </div>
+      </div>
+
+      <form class="a-form" id="companyForm">
+        <div class="a-grid">
+          <div class="a-field"><label>رقم الهاتف</label><input type="tel" id="cPhone" /></div>
+          <div class="a-field"><label>رقم واتساب <span class="sub">أرقام فقط مع رمز الدولة، بدون +</span></label><input type="text" id="cWhatsapp" /></div>
+          <div class="a-field"><label>البريد الإلكتروني</label><input type="email" id="cEmail" /></div>
+          <div class="a-field"><label>ساعات العمل (عربي)</label><input type="text" id="cHoursAr" /></div>
+          <div class="a-field full"><label>العنوان (عربي)</label><input type="text" id="cAddrAr" /></div>
+          <div class="a-field full"><label>Address (English)</label><input type="text" id="cAddrEn" /></div>
+          <div class="a-field"><label>رابط فيسبوك</label><input type="url" id="cFacebook" /></div>
+          <div class="a-field"><label>رابط انستغرام</label><input type="url" id="cInstagram" /></div>
+          <div class="a-field"><label>رابط تيك توك</label><input type="url" id="cTiktok" /></div>
+          <div class="a-field full">
+            <label>موقع المعرض على خرائط جوجل</label>
+            <input type="text" id="cMapsQuery" placeholder="مثال: معرض دار الإتقان، صحار، عُمان" />
+            <span class="sub">اكتب العنوان فقط بالعربية أو الإنجليزية — ستُبنى الخريطة تلقائياً في صفحة "تواصل معنا"، بدون أي كود معقّد. يمكنك أيضاً لصق رابط الموقع من تطبيق خرائط جوجل (زر "مشاركة") إن أردت دقة أعلى.</span>
+          </div>
+          <div class="a-field full">
+            <label>كود تضمين خرائط جوجل <span class="sub">(متقدّم واختياري — إن تُرك فارغاً سيُستخدم العنوان أعلاه)</span></label>
+            <input type="text" id="cMaps" placeholder="اختياري: رابط Embed a map الكامل من Google Maps" />
+          </div>
+          <div class="a-field full" id="mapPreviewField" hidden>
+            <label>معاينة الخريطة</label>
+            <div style="border:1px solid var(--line-dark,#ddd);border-radius:4px;overflow:hidden;">
+              <iframe id="mapPreviewFrame" width="100%" height="260" style="border:0;display:block;" loading="lazy"></iframe>
+            </div>
+          </div>
+        </div>
+        <div class="a-form-actions">
+          <button type="submit" class="a-btn">حفظ ومعاينة فورية</button>
+          <button type="button" class="a-btn outline" id="exportConfigBtn">⬇ تنزيل ملف الإعدادات (config.js)</button>
+        </div>
+        <div class="notice" id="companySavedNote" hidden>تم الحفظ — التغييرات ظاهرة الآن في موقعك (نفس المتصفح). لا تنسَ تنزيل الملف ورفعه لنشرها لكل الزوار.</div>
+      </form>
+    </section>
+
+    <!-- ===================== طريقة الاستخدام ===================== -->
+    <section class="admin-panel" id="panel-help">
+      <div class="admin-head"><div><h2>طريقة الاستخدام</h2></div></div>
+
+      <div class="notice">
+        <b>كيف تعمل لوحة التحكم هذه؟</b><br/>
+        الموقع لا يحتوي على قاعدة بيانات خلفية (Backend) — وهذا اختيار مقصود ليبقى الموقع سريعاً جداً ورخيص/مجاني الاستضافة.
+        لذلك تعمل هذه اللوحة كـ"محرِّر محلي": أي تعديل تقوم به يُحفظ في متصفحك فوراً (تراه أنت في نفس الجهاز)،
+        وعند الانتهاء تُنزِّل الملف المحدَّث وترفعه ليحل محل الملف القديم على الاستضافة — عندها يظهر التعديل لجميع الزوار.
+      </div>
+
+      <div class="notice">
+        <b>خطوات إضافة مشروع جديد ونشره للجميع</b>
+        <ol>
+          <li>من تبويب "المشاريع" اضغط "+ مشروع جديد" واملأ البيانات وارفع الصور.</li>
+          <li>احفظ — ستظهر لك معاينة فورية إذا فتحت <a href="portfolio.html" target="_blank" style="color:var(--bronze);text-decoration:underline;">معرض الأعمال</a> في هذا المتصفح.</li>
+          <li>اضغط "⬇ تنزيل ملف المشاريع" — سيُحمَّل ملف <b>projects.js</b> مع الصور بأسمائها الصحيحة.</li>
+          <li>ضع الصور المُنزَّلة داخل مجلد <b>images/projects/</b>.</li>
+          <li>استبدل ملف <b>js/projects.js</b> القديم على الاستضافة بالملف الجديد.</li>
+        </ol>
+      </div>
+
+      <div class="notice">
+        <b>خطوات مشابهة للفيديوهات وبيانات الشركة</b> — نفس الفكرة تماماً، فقط استبدل <b>js/videos.js</b> أو <b>js/config.js</b>.
+      </div>
+
+      <div class="notice">
+        <b>رفع الملفات على الاستضافة</b><br/>
+        حسب مكان استضافة موقعكم:
+        <ul>
+          <li><b>Vercel / Netlify:</b> اسحب مجلد الموقع كاملاً بعد التعديل وأفلته في لوحة الاستضافة (Deploy جديد).</li>
+          <li><b>استضافة عادية (cPanel):</b> افتح "File Manager"، وارفع الملفات لتحل محل القديمة في نفس المسار.</li>
+          <li><b>GitHub:</b> ادفع (commit + push) الملفات المعدَّلة إلى المستودع المرتبط بالموقع.</li>
+        </ul>
+      </div>
+
+      <div class="notice">
+        <b>هل تريدون تحديثاً فورياً لكل الزوار بدون رفع ملفات يدوياً؟</b><br/>
+        هذا ممكن، لكنه يتطلب ربط الموقع بقاعدة بيانات حقيقية (Backend/CMS بسيط). إذا رغبتم بذلك مستقبلاً، أخبرونا وسنجهزه.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/projects.js"></script>
+<script src="js/videos.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
