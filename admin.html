@@ -36,6 +36,7 @@
       <button data-panel="projects" class="is-active">🗂️ المشاريع</button>
       <button data-panel="videos">🎬 الفيديوهات</button>
       <button data-panel="facebook">📘 ربط فيسبوك</button>
+      <button data-panel="instagram">📸 ربط انستغرام</button>
       <button data-panel="company">🏷️ بيانات الشركة</button>
       <button data-panel="help">❓ طريقة الاستخدام</button>
     </nav>
@@ -125,7 +126,7 @@
       <div class="admin-head">
         <div>
           <h2>الفيديوهات</h2>
-          <p>ألصق رابط فيديو من فيسبوك أو يوتيوب وسيظهر مباشرة في صفحة "الفيديوهات" على الموقع.</p>
+          <p>أضف فيديو إمّا برابط من فيسبوك/يوتيوب، أو برفع ملف فيديو مباشرة من جهازك (لابتوب/جوال) — سيظهر في صفحة "الفيديوهات" على الموقع.</p>
         </div>
       </div>
       <div class="a-actions">
@@ -141,11 +142,23 @@
 
       <form class="a-form" id="videoForm" hidden>
         <h3 id="videoFormTitle" style="margin-bottom:18px;">فيديو جديد</h3>
+
+        <div class="mode-toggle" id="vModeToggle">
+          <button type="button" class="mode-btn is-active" data-mode="link">🔗 رابط (فيسبوك / يوتيوب)</button>
+          <button type="button" class="mode-btn" data-mode="file">⬆ رفع فيديو من الجهاز</button>
+        </div>
+
         <div class="a-grid">
-          <div class="a-field full">
+          <div class="a-field full" id="vLinkGroup">
             <label>رابط الفيديو (فيسبوك أو يوتيوب) *</label>
-            <input type="url" id="vUrl" placeholder="https://www.facebook.com/itqank/videos/..." required />
+            <input type="url" id="vUrl" placeholder="https://www.facebook.com/itqank/videos/..." />
             <span class="sub" id="vTypeDetected"></span>
+          </div>
+          <div class="a-field full" id="vFileGroup" hidden>
+            <label>ملف الفيديو *</label>
+            <input type="file" id="vFile" accept="video/*" />
+            <span class="sub">يفضَّل ملف بحجم معقول (أقل من 30-40 ميجابايت) لضمان معاينة سريعة وسلسة داخل المتصفح.</span>
+            <div id="vFilePreview" style="margin-top:10px;"></div>
           </div>
           <div class="a-field">
             <label>عنوان الفيديو (عربي) *</label>
@@ -165,6 +178,11 @@
               <option value="decor">ديكورات</option>
             </select>
           </div>
+        </div>
+        <div class="notice" id="vFileNotice" hidden>
+          هذا الفيديو مرفوع من جهازك — سيظهر لك فوراً هنا في المعاينة. عند الضغط على "⬇ تنزيل ملف الفيديوهات"
+          سيُنزَّل ملف الفيديو نفسه أيضاً بجانب <b>videos.js</b> — ضع ملف الفيديو داخل مجلد <b>videos/</b> على
+          الاستضافة (أنشئه إن لم يكن موجوداً) ثم ارفع <b>js/videos.js</b> ليظهر الفيديو لجميع الزوار.
         </div>
         <div class="a-form-actions">
           <button type="submit" class="a-btn">حفظ الفيديو</button>
@@ -202,6 +220,44 @@
           <button type="button" class="a-btn" id="fbImportBtn">معاينة</button>
         </div>
         <div class="fb-preview" id="fbImportPreview" hidden></div>
+      </div>
+    </section>
+
+    <!-- ===================== ربط انستغرام ===================== -->
+    <section class="admin-panel" id="panel-instagram">
+      <div class="admin-head">
+        <div>
+          <h2>ربط الموقع بصفحة انستغرام</h2>
+          <p>صفحتكم على انستغرام: <span data-cfg-ig-url></span> — انستغرام لا يسمح بتغذية تلقائية حية بدون
+            حساب مطوّرين رسمي، لذا الطريقة الموثوقة هنا هي تمييز كل منشور تريدون عرضه على الموقع بنفسكم (تأخذ ثوانٍ):</p>
+        </div>
+      </div>
+
+      <div class="notice">
+        انسخوا رابط أي منشور أو ريل من انستغرام (زر "..." ثم "نسخ الرابط") والصقوه هنا، عاينوه، ثم أضيفوه —
+        سيظهر مضمَّناً (صورة أو فيديو قابل للتشغيل) في قسم "تابعنا على انستغرام" ضمن صفحة
+        <a href="social.html" target="_blank" style="color:var(--bronze);text-decoration:underline;">وسائل التواصل الاجتماعي</a> على موقعكم — يفتحه الزائر ويشاهده من داخل الموقع مباشرة دون الحاجة لمغادرته.
+      </div>
+
+      <div class="a-form" style="margin-top:0;">
+        <div class="a-field full">
+          <label>رابط منشور أو ريل انستغرام</label>
+          <input type="url" id="igImportUrl" placeholder="https://www.instagram.com/p/xxxxxxxxx/" />
+        </div>
+        <div class="a-form-actions">
+          <button type="button" class="a-btn" id="igImportBtn">معاينة</button>
+        </div>
+        <div class="fb-preview" id="igImportPreview" hidden></div>
+      </div>
+
+      <h3 style="margin:30px 0 14px;font-size:16px;">المنشورات المميَّزة الحالية</h3>
+      <table class="a-table" id="instagramTable">
+        <thead><tr><th>الرابط</th><th>وصف مختصر</th><th></th></tr></thead>
+        <tbody id="instagramTbody"></tbody>
+      </table>
+      <div class="a-empty" id="instagramEmpty" hidden>لا توجد منشورات مميَّزة بعد.</div>
+      <div class="a-actions" style="margin-top:16px;">
+        <button class="a-btn outline" id="exportInstagramBtn">⬇ تنزيل ملف انستغرام (instagram.js)</button>
       </div>
     </section>
 
@@ -276,6 +332,24 @@
       </div>
 
       <div class="notice">
+        <b>رفع فيديو من اللابتوب مباشرة</b>
+        <ol>
+          <li>من تبويب "الفيديوهات" اضغط "+ فيديو جديد" ثم اختر وضع "⬆ رفع فيديو من الجهاز".</li>
+          <li>اختر ملف الفيديو من جهازك — ستظهر معاينة حقيقية تعمل فوراً في هذا المتصفح.</li>
+          <li>احفظ، ثم اضغط "⬇ تنزيل ملف الفيديوهات" — سيُنزَّل ملف الفيديو نفسه بجانب <b>videos.js</b>.</li>
+          <li>أنشئ مجلداً باسم <b>videos/</b> بجانب مجلد <b>images/</b> على الاستضافة (إن لم يكن موجوداً) وضع فيه ملف الفيديو المُنزَّل.</li>
+          <li>استبدل ملف <b>js/videos.js</b> القديم بالجديد. سيظهر الفيديو لجميع الزوار.</li>
+        </ol>
+      </div>
+
+      <div class="notice">
+        <b>ربط فيسبوك وانستغرام</b><br/>
+        صفحة <a href="social.html" target="_blank" style="color:var(--bronze);text-decoration:underline;">وسائل التواصل الاجتماعي</a>
+        (يصل إليها الزوار من أيقونة عائمة في كل صفحات الموقع) تعرض تلقائياً آخر منشورات صفحتكم على فيسبوك، بالإضافة
+        لمنشورات انستغرام التي تُميّزونها من تبويب "ربط انستغرام" — الصور والفيديوهات تُفتح وتُشاهَد من داخل الموقع نفسه.
+      </div>
+
+      <div class="notice">
         <b>رفع الملفات على الاستضافة</b><br/>
         حسب مكان استضافة موقعكم:
         <ul>
@@ -297,6 +371,7 @@
 <script src="js/config.js"></script>
 <script src="js/projects.js"></script>
 <script src="js/videos.js"></script>
+<script src="js/instagram.js"></script>
 <script src="js/admin.js"></script>
 </body>
 </html>

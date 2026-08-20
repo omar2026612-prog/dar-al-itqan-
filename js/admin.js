@@ -3,6 +3,7 @@
 
   var LS_PROJECTS = "itqan_admin_projects";
   var LS_VIDEOS = "itqan_admin_videos";
+  var LS_INSTAGRAM = "itqan_admin_instagram";
   var LS_CONFIG = "itqan_admin_config";
   var SS_AUTH = "itqan_admin_auth";
   // علم دائم (لا يُمسح بإغلاق المتصفح) يُستخدم لإظهار "وضع المالك" في كل صفحات
@@ -26,6 +27,13 @@
     } catch (e) {}
     return JSON.parse(JSON.stringify(window.VIDEOS || []));
   }
+  function loadInstagramPosts() {
+    try {
+      var raw = localStorage.getItem(LS_INSTAGRAM);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return JSON.parse(JSON.stringify(window.INSTAGRAM_POSTS || []));
+  }
   function loadConfigPatch() {
     try {
       var raw = localStorage.getItem(LS_CONFIG);
@@ -37,18 +45,34 @@
   var state = {
     projects: loadProjects(),
     videos: loadVideos(),
+    instagramPosts: loadInstagramPosts(),
     configPatch: loadConfigPatch(),
     editingProjectId: null,
     editingVideoId: null,
+    editingInstagramId: null,
     pendingCoverImage: null, // {dataUrl, ext}
     pendingGalleryImages: [], // [{dataUrl, ext}]
+    pendingVideoFile: null, // {dataUrl, ext, name}
+    videoMode: "link", // "link" | "file"
   };
 
   function saveProjects() {
     localStorage.setItem(LS_PROJECTS, JSON.stringify(state.projects));
   }
+  // يحاول حفظ الفيديوهات في المتصفح؛ قد يفشل إن كان فيديو الملف المرفوع كبيراً
+  // جداً على سعة التخزين المحلي (localStorage) — في هذه الحالة نتابع العمل
+  // بالحالة الحالية في الذاكرة (كافية لإتمام "التصدير" في نفس الجلسة) ونحذّر المستخدم.
   function saveVideos() {
-    localStorage.setItem(LS_VIDEOS, JSON.stringify(state.videos));
+    try {
+      localStorage.setItem(LS_VIDEOS, JSON.stringify(state.videos));
+      return true;
+    } catch (e) {
+      console.warn("saveVideos failed", e);
+      return false;
+    }
+  }
+  function saveInstagramPosts() {
+    localStorage.setItem(LS_INSTAGRAM, JSON.stringify(state.instagramPosts));
   }
   function saveConfigPatch() {
     localStorage.setItem(LS_CONFIG, JSON.stringify(state.configPatch));
@@ -161,6 +185,8 @@
     } else if (newSpec === "video") {
       goToPanel("videos");
       openVideoForm(null);
+    } else if (newSpec === "instagram") {
+      goToPanel("instagram");
     }
     // ننظّف الرابط حتى لا يُعاد فتح نفس النموذج عند تحديث الصفحة
     if (editSpec || newSpec) {
@@ -186,9 +212,12 @@
   function renderAll() {
     renderProjectsTable();
     renderVideosTable();
+    renderInstagramTable();
     fillCompanyForm();
     var fbSpan = document.querySelector("[data-cfg-fb-url]");
     if (fbSpan) fbSpan.textContent = (SITE_CONFIG.social.facebook || "").replace(/^https?:\/\/(www\.)?/, "");
+    var igSpan = document.querySelector("[data-cfg-ig-url]");
+    if (igSpan) igSpan.textContent = (SITE_CONFIG.social.instagram || "").replace(/^https?:\/\/(www\.)?/, "");
   }
 
   /* =========================================================
@@ -434,12 +463,26 @@
     });
   }
 
+  function setVideoMode(mode) {
+    state.videoMode = mode;
+    document.querySelectorAll("#vModeToggle .mode-btn").forEach(function (b) {
+      b.classList.toggle("is-active", b.dataset.mode === mode);
+    });
+    document.getElementById("vLinkGroup").hidden = mode !== "link";
+    document.getElementById("vFileGroup").hidden = mode !== "file";
+  }
+
   function resetVideoForm() {
     state.editingVideoId = null;
+    state.pendingVideoFile = null;
     document.getElementById("videoFormTitle").textContent = "فيديو جديد";
     ["vUrl", "vTitleAr", "vTitleEn"].forEach(function (id) { document.getElementById(id).value = ""; });
+    document.getElementById("vFile").value = "";
+    document.getElementById("vFilePreview").innerHTML = "";
+    document.getElementById("vFileNotice").hidden = true;
     document.getElementById("vCategory").value = "promo";
     document.getElementById("vTypeDetected").textContent = "";
+    setVideoMode("link");
   }
 
   function openVideoForm(video) {
@@ -450,10 +493,17 @@
     if (!video) return;
     state.editingVideoId = video.id;
     document.getElementById("videoFormTitle").textContent = "تعديل: " + video.title.ar;
-    document.getElementById("vUrl").value = video.url || "";
     document.getElementById("vTitleAr").value = (video.title && video.title.ar) || "";
     document.getElementById("vTitleEn").value = (video.title && video.title.en) || "";
     document.getElementById("vCategory").value = video.category || "promo";
+    if (video.type === "file") {
+      setVideoMode("file");
+      document.getElementById("vFilePreview").innerHTML = '<div class="a-thumb-item" style="width:160px;height:100px;"><video src="' + video.url + '" controls></video></div>';
+      document.getElementById("vFileNotice").hidden = false;
+    } else {
+      setVideoMode("link");
+      document.getElementById("vUrl").value = video.url || "";
+    }
   }
 
   function initVideoForm() {
@@ -461,41 +511,105 @@
     document.getElementById("cancelVideoBtn").addEventListener("click", function () {
       document.getElementById("videoForm").hidden = true;
     });
+    document.querySelectorAll("#vModeToggle .mode-btn").forEach(function (b) {
+      b.addEventListener("click", function () { setVideoMode(b.dataset.mode); });
+    });
     document.getElementById("vUrl").addEventListener("input", function (e) {
       var type = detectVideoType(e.target.value.trim());
       var labels = { facebook: "تم التعرف عليه كفيديو فيسبوك ✓", youtube: "تم التعرف عليه كفيديو يوتيوب ✓", file: "سيُعامل كرابط ملف فيديو مباشر" };
       document.getElementById("vTypeDetected").textContent = e.target.value.trim() ? labels[type] : "";
     });
 
+    document.getElementById("vFile").addEventListener("change", function (e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      fileToDataUrl(file).then(function (dataUrl) {
+        state.pendingVideoFile = { dataUrl: dataUrl, ext: extFromFile(file), name: file.name };
+        document.getElementById("vFilePreview").innerHTML = '<div class="a-thumb-item" style="width:160px;height:100px;"><video src="' + dataUrl + '" controls></video></div>';
+        document.getElementById("vFileNotice").hidden = false;
+      });
+    });
+
     document.getElementById("videoForm").addEventListener("submit", function (e) {
       e.preventDefault();
-      var url = document.getElementById("vUrl").value.trim();
       var titleAr = document.getElementById("vTitleAr").value.trim();
-      if (!url || !titleAr) return;
+      if (!titleAr) return;
 
       var existing = state.editingVideoId ? state.videos.find(function (v) { return v.id === state.editingVideoId; }) : null;
-      var record = {
-        id: existing ? existing.id : slugId("video"),
-        type: detectVideoType(url),
-        url: url,
-        title: { ar: titleAr, en: document.getElementById("vTitleEn").value.trim() || titleAr },
-        category: document.getElementById("vCategory").value,
-      };
+      var id = existing ? existing.id : slugId("video");
+      var record;
+
+      if (state.videoMode === "file") {
+        // فيديو مرفوع من الجهاز: نستخدم رابط Base64 مباشرة كمعاينة فورية وحقيقية
+        // داخل هذا المتصفح، ونحتفظ بنفس البيانات في _pendingVideo لتنزيل الملف
+        // الفعلي عند "تصدير" الفيديوهات، مع مسار نهائي داخل videos/ للاستضافة.
+        var pending = state.pendingVideoFile || (existing && existing._pendingVideo);
+        var url = pending ? pending.dataUrl : (existing ? existing.url : null);
+        if (!url) { alert("الرجاء اختيار ملف فيديو."); return; }
+        record = {
+          id: id,
+          type: "file",
+          url: url,
+          title: { ar: titleAr, en: document.getElementById("vTitleEn").value.trim() || titleAr },
+          category: document.getElementById("vCategory").value,
+        };
+        if (state.pendingVideoFile) record._pendingVideo = state.pendingVideoFile;
+        else if (existing && existing._pendingVideo) record._pendingVideo = existing._pendingVideo;
+      } else {
+        var linkUrl = document.getElementById("vUrl").value.trim();
+        if (!linkUrl) { alert("الرجاء إدخال رابط الفيديو."); return; }
+        record = {
+          id: id,
+          type: detectVideoType(linkUrl),
+          url: linkUrl,
+          title: { ar: titleAr, en: document.getElementById("vTitleEn").value.trim() || titleAr },
+          category: document.getElementById("vCategory").value,
+        };
+      }
+
       if (existing) Object.assign(existing, record);
       else state.videos.push(record);
 
-      saveVideos(); renderVideosTable();
+      var saved = saveVideos();
+      renderVideosTable();
       document.getElementById("videoForm").hidden = true;
+      if (!saved) {
+        alert("تمت الإضافة ويمكنك تنزيلها الآن، لكن الفيديو كبير جداً على مساحة التخزين المؤقت لهذا المتصفح — لن يبقى محفوظاً هنا بعد إغلاق الصفحة، فتأكد من تنزيل ملفات الفيديوهات الآن قبل إغلاق لوحة التحكم.");
+      }
     });
   }
 
   function exportVideos() {
     if (!state.videos.length) { alert("لا توجد فيديوهات لتصديرها بعد."); return; }
+
+    // تنزيل ملفات الفيديو المرفوعة حديثاً بأسمائها الصحيحة، واستبدال الرابط
+    // المؤقت (Base64) في البيانات المصدَّرة بمسار دائم داخل videos/
+    var hadFiles = false;
+    state.videos.forEach(function (v) {
+      if (v._pendingVideo) {
+        hadFiles = true;
+        var filename = v.id + "." + v._pendingVideo.ext;
+        downloadDataUrl(filename, v._pendingVideo.dataUrl);
+        v.url = "videos/" + filename;
+      }
+    });
+
+    var clean = state.videos.map(function (v) {
+      return { id: v.id, type: v.type, url: v.url, title: v.title, category: v.category };
+    });
+
     var content =
       "/**\n * بيانات الفيديوهات — تم إنشاؤه من لوحة التحكم\n" +
-      " * ارفع هذا الملف ليحل محل js/videos.js على الاستضافة.\n */\n" +
-      "let VIDEOS = " + JSON.stringify(state.videos, null, 2) + ";\n";
+      " * ارفع هذا الملف ليحل محل js/videos.js على الاستضافة.\n" +
+      (hadFiles ? " * ضع أي ملفات فيديو تم تنزيلها معه داخل مجلد videos/ على الاستضافة.\n" : "") +
+      " */\n" +
+      "let VIDEOS = " + JSON.stringify(clean, null, 2) + ";\n";
     downloadBlob("videos.js", content, "application/javascript;charset=utf-8");
+
+    // بعد التصدير، ننظّف الروابط المؤقتة الثقيلة (Base64) من الحالة المحفوظة محلياً
+    // لتفادي امتلاء مساحة التخزين المؤقت للمتصفح، مع إبقاء بيانات الفيديو كما هي.
+    state.videos.forEach(function (v) { delete v._pendingVideo; });
+    saveVideos();
   }
 
   /* =========================================================
@@ -519,6 +633,75 @@
         alert("تمت الإضافة إلى قائمة الفيديوهات ✓");
       });
     });
+  }
+
+  /* =========================================================
+     انستغرام — منشورات مميّزة (تضمين رسمي بدون مفتاح API)
+     ========================================================= */
+  function ensureInstagramEmbedScript(cb) {
+    if (window.instgrm) { cb(); return; }
+    var existing = document.getElementById("ig-embed-script");
+    if (existing) { existing.addEventListener("load", cb); return; }
+    var s = document.createElement("script");
+    s.id = "ig-embed-script";
+    s.src = "https://www.instagram.com/embed.js";
+    s.async = true;
+    s.onload = cb;
+    document.body.appendChild(s);
+  }
+
+  function igEmbedHtml(url) {
+    return '<blockquote class="instagram-media" data-instgrm-permalink="' + url + '" data-instgrm-version="14" style="margin:0 auto;max-width:400px;"></blockquote>';
+  }
+
+  function renderInstagramTable() {
+    var tbody = document.getElementById("instagramTbody");
+    var empty = document.getElementById("instagramEmpty");
+    var table = document.getElementById("instagramTable");
+    if (!state.instagramPosts.length) { table.hidden = true; empty.hidden = false; return; }
+    table.hidden = false; empty.hidden = true;
+    tbody.innerHTML = state.instagramPosts.map(function (p, i) {
+      return '<tr>' +
+        '<td><a href="' + p.url + '" target="_blank" rel="noopener">' + p.url + '</a></td>' +
+        '<td>' + (p.caption || "") + '</td>' +
+        '<td class="a-row-actions"><button class="a-btn sm danger" data-del-ig="' + i + '">حذف</button></td></tr>';
+    }).join("");
+    tbody.querySelectorAll("[data-del-ig]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (!confirm("حذف هذا المنشور؟")) return;
+        state.instagramPosts.splice(+btn.dataset.delIg, 1);
+        saveInstagramPosts(); renderInstagramTable();
+      });
+    });
+  }
+
+  function initInstagramImport() {
+    document.getElementById("igImportBtn").addEventListener("click", function () {
+      var url = document.getElementById("igImportUrl").value.trim();
+      var box = document.getElementById("igImportPreview");
+      if (!url) return;
+      box.hidden = false;
+      box.innerHTML = igEmbedHtml(url) +
+        '<div class="a-form-actions"><button type="button" class="a-btn sm" id="igAddPost">➕ إضافة كمنشور مميّز</button></div>';
+      ensureInstagramEmbedScript(function () {
+        if (window.instgrm) window.instgrm.Embeds.process();
+      });
+      document.getElementById("igAddPost").addEventListener("click", function () {
+        var caption = prompt("وصف مختصر لهذا المنشور (اختياري):", "") || "";
+        state.instagramPosts.push({ id: slugId("ig"), url: url, caption: caption });
+        saveInstagramPosts(); renderInstagramTable();
+        alert("تمت الإضافة إلى المنشورات المميزة ✓");
+      });
+    });
+  }
+
+  function exportInstagram() {
+    if (!state.instagramPosts.length) { alert("لا توجد منشورات انستغرام لتصديرها بعد."); return; }
+    var content =
+      "/**\n * منشورات انستغرام المميّزة — تم إنشاؤه من لوحة التحكم\n" +
+      " * ارفع هذا الملف ليحل محل js/instagram.js على الاستضافة.\n */\n" +
+      "let INSTAGRAM_POSTS = " + JSON.stringify(state.instagramPosts, null, 2) + ";\n";
+    downloadBlob("instagram.js", content, "application/javascript;charset=utf-8");
   }
 
   /* =========================================================
@@ -630,8 +813,10 @@
     initProjectForm();
     initVideoForm();
     initFacebookImport();
+    initInstagramImport();
     initCompanyForm();
     document.getElementById("exportProjectsBtn").addEventListener("click", exportProjects);
     document.getElementById("exportVideosBtn").addEventListener("click", exportVideos);
+    document.getElementById("exportInstagramBtn").addEventListener("click", exportInstagram);
   });
 })();

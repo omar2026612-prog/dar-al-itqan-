@@ -71,6 +71,7 @@
         '<a href="admin.html" target="_blank" rel="noopener">🗂️ لوحة التحكم الكاملة</a>' +
         '<a href="admin.html?new=project" target="_blank" rel="noopener">➕ إضافة مشروع جديد</a>' +
         '<a href="admin.html?new=video" target="_blank" rel="noopener">➕ إضافة فيديو جديد</a>' +
+        '<a href="admin.html?new=instagram" target="_blank" rel="noopener">📸 إضافة منشور انستغرام</a>' +
         '<button type="button" class="om-logout" id="ownerLogoutBtn">↩ الخروج من وضع المالك</button>' +
       '</div>' +
       '<button type="button" id="ownerToggle" aria-label="أدوات التحكم" title="أدوات التحكم (خاصة بك)">' + ICON_GEAR + "</button>";
@@ -147,6 +148,23 @@
     }
   }
 
+  function decorateInstagramGrid() {
+    var grid = document.getElementById("igGrid");
+    if (!grid) return;
+    if (grid.hidden) grid.hidden = false;
+    var emptyMsg = document.getElementById("igEmpty");
+    if (emptyMsg) emptyMsg.hidden = true;
+    if (!grid.querySelector(".owner-add-tile")) {
+      var tile = document.createElement("a");
+      tile.className = "owner-add-tile";
+      tile.href = "admin.html?new=instagram";
+      tile.target = "_blank";
+      tile.rel = "noopener";
+      tile.innerHTML = ICON_PLUS + "<span>إضافة منشور انستغرام</span>";
+      grid.appendChild(tile);
+    }
+  }
+
   function decorateProjectDetails() {
     var id = document.body.dataset.ownerProjectId;
     if (!id || document.querySelector(".owner-detail-edit")) return;
@@ -164,6 +182,7 @@
     renderBadge();
     decorateProjectCards();
     decorateVideoCards();
+    decorateInstagramGrid();
     decorateProjectDetails();
   });
 })();

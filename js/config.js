@@ -79,6 +79,7 @@ const SITE_CONFIG = {
     { key: "services", ar: "خدماتنا", en: "Services", href: "services.html" },
     { key: "portfolio", ar: "معرض الأعمال", en: "Portfolio", href: "portfolio.html" },
     { key: "videos", ar: "الفيديوهات", en: "Videos", href: "videos.html" },
+    { key: "social", ar: "السوشيال ميديا", en: "Social", href: "social.html" },
     { key: "contact", ar: "تواصل معنا", en: "Contact", href: "contact.html" },
   ],
 

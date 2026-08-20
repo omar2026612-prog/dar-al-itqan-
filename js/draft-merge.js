@@ -19,6 +19,11 @@
   } catch (e) {}
 
   try {
+    var di = localStorage.getItem("itqan_admin_instagram");
+    if (di && typeof INSTAGRAM_POSTS !== "undefined") INSTAGRAM_POSTS = JSON.parse(di);
+  } catch (e) {}
+
+  try {
     var dc = localStorage.getItem("itqan_admin_config");
     if (dc) {
       var patch = JSON.parse(dc);

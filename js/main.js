@@ -138,6 +138,20 @@
     document.body.appendChild(a);
   }
 
+  /* ---------- أيقونة عائمة: وسائل التواصل الاجتماعي (فيسبوك/انستغرام) ---------- */
+  function renderSocialFloat() {
+    if (document.getElementById("socialFloat")) return;
+    if (document.body.dataset.page === "social") return; // لا داعي لها في نفس الصفحة
+    const a = document.createElement("a");
+    a.id = "socialFloat";
+    a.className = "social-float";
+    a.href = "social.html";
+    a.setAttribute("aria-label", LANG === "ar" ? "آخر منشوراتنا على فيسبوك وانستغرام" : "Latest posts on Facebook & Instagram");
+    a.title = LANG === "ar" ? "آخر منشوراتنا على فيسبوك وانستغرام" : "Latest posts on Facebook & Instagram";
+    a.innerHTML = icon("ig").replace(/16/g, "26");
+    document.body.appendChild(a);
+  }
+
   /* ---------- Scroll reveal ---------- */
   function initReveal() {
     const items = document.querySelectorAll(".reveal");
@@ -270,6 +284,7 @@
     renderHeader();
     renderFooter();
     renderWaFloat();
+    renderSocialFloat();
     initReveal();
     initFilters();
     initLightbox();

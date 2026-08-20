@@ -302,6 +302,16 @@ h3.h-sub{font-size:clamp(20px,2.4vw,26px);line-height:1.4;}
 .wa-float:hover{transform:scale(1.08);}
 .wa-float svg{width:30px;height:30px;}
 
+/* ---------- Social hub float (Facebook/Instagram) ---------- */
+.social-float{
+  position:fixed;bottom:92px;inset-inline-end:26px;z-index:90;
+  width:50px;height:50px;border-radius:50%;color:#fff;
+  background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(0,0,0,.28);
+  transition:transform .3s var(--ease);
+}
+.social-float:hover{transform:scale(1.08);}
+
 /* ---------- 404 ---------- */
 .error-page{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:var(--charcoal);color:var(--ivory);}
 .error-page .big{font-family:var(--font-display);font-size:clamp(70px,14vw,160px);color:var(--bronze);line-height:1;}
