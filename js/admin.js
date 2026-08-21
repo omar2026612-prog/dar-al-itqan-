@@ -5,6 +5,7 @@
   var LS_VIDEOS = "itqan_admin_videos";
   var LS_INSTAGRAM = "itqan_admin_instagram";
   var LS_CONFIG = "itqan_admin_config";
+  var LS_GITHUB = "itqan_github_settings"; // {owner, repo, branch, baseDir, token} — يبقى محلياً فقط، لا يُصدَّر أبداً
   var SS_AUTH = "itqan_admin_auth";
   // علم دائم (لا يُمسح بإغلاق المتصفح) يُستخدم لإظهار "وضع المالك" في كل صفحات
   // الموقع العامة (أيقونة التحكم + أزرار تعديل سريعة) — يبقى حتى تسجيل الخروج يدوياً.
@@ -34,6 +35,13 @@
     } catch (e) {}
     return JSON.parse(JSON.stringify(window.INSTAGRAM_POSTS || []));
   }
+  function loadGithubSettings() {
+    try {
+      var raw = localStorage.getItem(LS_GITHUB);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return { owner: "", repo: "", branch: "main", baseDir: "", token: "" };
+  }
   function loadConfigPatch() {
     try {
       var raw = localStorage.getItem(LS_CONFIG);
@@ -47,6 +55,7 @@
     videos: loadVideos(),
     instagramPosts: loadInstagramPosts(),
     configPatch: loadConfigPatch(),
+    github: loadGithubSettings(),
     editingProjectId: null,
     editingVideoId: null,
     editingInstagramId: null,
@@ -76,6 +85,9 @@
   }
   function saveConfigPatch() {
     localStorage.setItem(LS_CONFIG, JSON.stringify(state.configPatch));
+  }
+  function saveGithubSettings() {
+    localStorage.setItem(LS_GITHUB, JSON.stringify(state.github));
   }
 
   var CAT_LABELS = {
@@ -429,7 +441,10 @@
   function detectVideoType(url) {
     if (/facebook\.com|fb\.watch/.test(url)) return "facebook";
     if (/youtube\.com|youtu\.be/.test(url)) return "youtube";
-    return "file";
+    if (/instagram\.com/.test(url)) return "instagram";
+    if (/tiktok\.com/.test(url)) return "tiktok";
+    if (/\.(mp4|webm|mov)(\?|$)/i.test(url)) return "file";
+    return "link";
   }
 
   function renderVideosTable() {
@@ -439,7 +454,8 @@
     if (!state.videos.length) { table.hidden = true; empty.hidden = false; return; }
     table.hidden = false; empty.hidden = true;
     tbody.innerHTML = state.videos.map(function (v, i) {
-      var src = v.type === "facebook" ? "فيسبوك" : v.type === "youtube" ? "يوتيوب" : "ملف";
+      var srcLabels = { facebook: "فيسبوك", youtube: "يوتيوب", instagram: "انستغرام", tiktok: "تيك توك", file: "ملف مرفوع", link: "رابط خارجي" };
+      var src = srcLabels[v.type] || "رابط خارجي";
       return '<tr>' +
         '<td>' + ((v.title && v.title.ar) || "") + '</td>' +
         '<td>' + src + '</td>' +
@@ -516,7 +532,7 @@
     });
     document.getElementById("vUrl").addEventListener("input", function (e) {
       var type = detectVideoType(e.target.value.trim());
-      var labels = { facebook: "تم التعرف عليه كفيديو فيسبوك ✓", youtube: "تم التعرف عليه كفيديو يوتيوب ✓", file: "سيُعامل كرابط ملف فيديو مباشر" };
+      var labels = { facebook: "تم التعرف عليه كفيديو فيسبوك ✓", youtube: "تم التعرف عليه كفيديو يوتيوب ✓", instagram: "تم التعرف عليه كمنشور انستغرام ✓", tiktok: "تم التعرف عليه كفيديو تيك توك ✓", file: "سيُعامل كرابط ملف فيديو مباشر", link: "سيُعرض كرابط خارجي يُفتح في نافذة جديدة" };
       document.getElementById("vTypeDetected").textContent = e.target.value.trim() ? labels[type] : "";
     });
 
@@ -705,6 +721,233 @@
   }
 
   /* =========================================================
+     النشر المباشر على GitHub (بديل تلقائي عن التنزيل والرفع اليدوي)
+     ========================================================= */
+  function ghConfigured() {
+    return !!(state.github.owner && state.github.repo && state.github.token);
+  }
+  function ghEncodePath(path) {
+    return path.split("/").map(encodeURIComponent).join("/");
+  }
+  function ghFullPath(path) {
+    var base = (state.github.baseDir || "").replace(/^\/+|\/+$/g, "");
+    return base ? base + "/" + path : path;
+  }
+  function ghApiBase() {
+    return "https://api.github.com/repos/" + encodeURIComponent(state.github.owner) + "/" + encodeURIComponent(state.github.repo);
+  }
+  function ghHeaders() {
+    return {
+      Authorization: "Bearer " + state.github.token,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+    };
+  }
+  function utf8ToBase64(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  async function ghGetSha(path) {
+    var branch = state.github.branch || "main";
+    var res = await fetch(ghApiBase() + "/contents/" + ghEncodePath(ghFullPath(path)) + "?ref=" + encodeURIComponent(branch), { headers: ghHeaders() });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error("تعذّر قراءة " + path + " (HTTP " + res.status + ")");
+    var data = await res.json();
+    return data.sha;
+  }
+  async function ghPutFile(path, base64Content, message) {
+    var branch = state.github.branch || "main";
+    var sha = await ghGetSha(path);
+    var body = { message: message, content: base64Content, branch: branch };
+    if (sha) body.sha = sha;
+    var res = await fetch(ghApiBase() + "/contents/" + ghEncodePath(ghFullPath(path)), {
+      method: "PUT",
+      headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      var msg = "HTTP " + res.status;
+      try { var j = await res.json(); if (j.message) msg = j.message; } catch (e2) {}
+      throw new Error("فشل نشر " + path + ": " + msg);
+    }
+    return res.json();
+  }
+
+  function ghStatusNotice() {
+    var el = document.getElementById("ghStatusNotice");
+    if (!el) return;
+    if (ghConfigured()) {
+      el.className = "notice ok";
+      el.innerHTML = "✓ متصل بمستودع <b>" + state.github.owner + "/" + state.github.repo + "</b> (الفرع: " + (state.github.branch || "main") + "). أزرار \"🚀 نشر مباشر\" في كل تبويب جاهزة للعمل الآن.";
+    } else {
+      el.className = "notice";
+      el.textContent = "لسه ما اترابط بحساب GitHub — عبّي البيانات بالأسفل مرة واحدة، وبعدها أزرار \"🚀 نشر مباشر\" في باقي التبويبات هتشتغل مباشرة.";
+    }
+  }
+
+  function initGithubForm() {
+    document.getElementById("ghOwner").value = state.github.owner || "";
+    document.getElementById("ghRepo").value = state.github.repo || "";
+    document.getElementById("ghBranch").value = state.github.branch || "main";
+    document.getElementById("ghBaseDir").value = state.github.baseDir || "";
+    document.getElementById("ghToken").value = state.github.token || "";
+    ghStatusNotice();
+
+    document.getElementById("ghShowToken").addEventListener("click", function () {
+      var f = document.getElementById("ghToken");
+      var isPwd = f.type === "password";
+      f.type = isPwd ? "text" : "password";
+      this.textContent = isPwd ? "إخفاء" : "إظهار";
+    });
+
+    document.getElementById("githubForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      state.github = {
+        owner: document.getElementById("ghOwner").value.trim(),
+        repo: document.getElementById("ghRepo").value.trim(),
+        branch: document.getElementById("ghBranch").value.trim() || "main",
+        baseDir: document.getElementById("ghBaseDir").value.trim(),
+        token: document.getElementById("ghToken").value.trim(),
+      };
+      saveGithubSettings();
+      if (!ghConfigured()) { ghStatusNotice(); return; }
+
+      var notice = document.getElementById("ghStatusNotice");
+      notice.className = "notice";
+      notice.textContent = "جارٍ اختبار الاتصال...";
+      ghGetSha("js/videos.js").then(function () {
+        ghStatusNotice();
+        alert("تم الاتصال بنجاح ✓");
+      }).catch(function (err) {
+        notice.className = "notice danger";
+        notice.textContent = "تعذّر الاتصال: " + err.message + " — تأكد من اسم المستخدم/المستودع والصلاحيات الممنوحة للمفتاح.";
+      });
+    });
+
+    document.getElementById("ghDisconnectBtn").addEventListener("click", function () {
+      if (!confirm("سيتم حذف بيانات ربط GitHub (بما فيها المفتاح) من هذا المتصفح. متابعة؟")) return;
+      state.github = { owner: "", repo: "", branch: "main", baseDir: "", token: "" };
+      saveGithubSettings();
+      document.getElementById("githubForm").reset();
+      document.getElementById("ghBranch").value = "main";
+      ghStatusNotice();
+    });
+  }
+
+  function requireGithub() {
+    if (ghConfigured()) return true;
+    if (confirm("لسه ما اترابط بحساب GitHub. هل تريد الانتقال لتبويب \"النشر المباشر\" لربطه الآن؟")) {
+      goToPanel("publish");
+    }
+    return false;
+  }
+
+  function setBtnBusy(btn, busyText) {
+    btn.disabled = true;
+    btn.dataset.origText = btn.textContent;
+    btn.textContent = busyText;
+  }
+  function clearBtnBusy(btn) {
+    btn.disabled = false;
+    if (btn.dataset.origText) btn.textContent = btn.dataset.origText;
+  }
+
+  async function publishProjects(btn) {
+    if (!requireGithub()) return;
+    if (!state.projects.length) { alert("لا توجد مشاريع لنشرها بعد."); return; }
+    setBtnBusy(btn, "⏳ جارٍ رفع الصور...");
+    try {
+      for (var p of state.projects) {
+        if (p._pendingCover) {
+          var cf = p.id + "-cover." + p._pendingCover.ext;
+          await ghPutFile("images/projects/" + cf, p._pendingCover.dataUrl.split(",")[1], "رفع صورة غلاف: " + p.id);
+          p.cover = "images/projects/" + cf;
+          delete p._pendingCover;
+        }
+        if (p._pendingGallery && p._pendingGallery.length) {
+          for (var gi = 0; gi < p._pendingGallery.length; gi++) {
+            var g = p._pendingGallery[gi];
+            var gf = p.id + "-g" + (gi + 1) + "." + g.ext;
+            await ghPutFile("images/projects/" + gf, g.dataUrl.split(",")[1], "رفع صورة مشروع: " + p.id);
+          }
+          delete p._pendingGallery;
+        }
+      }
+      btn.textContent = "⏳ جارٍ نشر بيانات المشاريع...";
+      var clean = state.projects.map(function (p) {
+        var c = Object.assign({}, p);
+        delete c._pendingCover; delete c._pendingGallery;
+        return c;
+      });
+      var content = "/**\n * بيانات المشاريع — تم إنشاؤه من لوحة التحكم\n */\n" + "let PROJECTS = " + JSON.stringify(clean, null, 2) + ";\n";
+      await ghPutFile("js/projects.js", utf8ToBase64(content), "تحديث المشاريع من لوحة التحكم");
+      saveProjects();
+      renderProjectsTable();
+      alert("تم نشر المشاريع على الموقع مباشرة ✓ (سيظهر التحديث خلال دقيقة أو دقيقتين)");
+    } catch (err) {
+      alert("حدث خطأ أثناء النشر: " + err.message);
+    } finally {
+      clearBtnBusy(btn);
+    }
+  }
+
+  async function publishVideos(btn) {
+    if (!requireGithub()) return;
+    if (!state.videos.length) { alert("لا توجد فيديوهات لنشرها بعد."); return; }
+    setBtnBusy(btn, "⏳ جارٍ رفع الفيديو...");
+    try {
+      for (var v of state.videos) {
+        if (v._pendingVideo) {
+          var filename = v.id + "." + v._pendingVideo.ext;
+          await ghPutFile("videos/" + filename, v._pendingVideo.dataUrl.split(",")[1], "رفع فيديو: " + (v.title && v.title.ar));
+          v.url = "videos/" + filename;
+          delete v._pendingVideo;
+        }
+      }
+      btn.textContent = "⏳ جارٍ نشر بيانات الفيديوهات...";
+      var clean = state.videos.map(function (v) {
+        return { id: v.id, type: v.type, url: v.url, title: v.title, category: v.category };
+      });
+      var content = "/**\n * بيانات الفيديوهات — تم إنشاؤه من لوحة التحكم\n */\n" + "let VIDEOS = " + JSON.stringify(clean, null, 2) + ";\n";
+      await ghPutFile("js/videos.js", utf8ToBase64(content), "تحديث الفيديوهات من لوحة التحكم");
+      saveVideos();
+      renderVideosTable();
+      alert("تم نشر الفيديو على الموقع مباشرة ✓ (سيظهر في صفحة الفيديوهات خلال دقيقة أو دقيقتين)");
+    } catch (err) {
+      alert("حدث خطأ أثناء النشر: " + err.message);
+    } finally {
+      clearBtnBusy(btn);
+    }
+  }
+
+  async function publishInstagram(btn) {
+    if (!requireGithub()) return;
+    if (!state.instagramPosts.length) { alert("لا توجد منشورات انستغرام لنشرها بعد."); return; }
+    setBtnBusy(btn, "⏳ جارٍ النشر...");
+    try {
+      var content = "/**\n * منشورات انستغرام المميّزة — تم إنشاؤه من لوحة التحكم\n */\n" + "let INSTAGRAM_POSTS = " + JSON.stringify(state.instagramPosts, null, 2) + ";\n";
+      await ghPutFile("js/instagram.js", utf8ToBase64(content), "تحديث منشورات انستغرام من لوحة التحكم");
+      alert("تم نشر منشورات انستغرام على الموقع مباشرة ✓");
+    } catch (err) {
+      alert("حدث خطأ أثناء النشر: " + err.message);
+    } finally {
+      clearBtnBusy(btn);
+    }
+  }
+
+  async function publishConfig(btn) {
+    if (!requireGithub()) return;
+    setBtnBusy(btn, "⏳ جارٍ النشر...");
+    try {
+      await ghPutFile("js/config.js", utf8ToBase64(buildConfigFileContent()), "تحديث بيانات الشركة من لوحة التحكم");
+      alert("تم نشر بيانات الشركة على الموقع مباشرة ✓");
+    } catch (err) {
+      alert("حدث خطأ أثناء النشر: " + err.message);
+    } finally {
+      clearBtnBusy(btn);
+    }
+  }
+
+  /* =========================================================
      بيانات الشركة
      ========================================================= */
   function fillCompanyForm() {
@@ -743,8 +986,7 @@
     document.getElementById("cMapsQuery").addEventListener("input", updateMapPreview);
     document.getElementById("cMaps").addEventListener("input", updateMapPreview);
 
-    document.getElementById("companyForm").addEventListener("submit", function (e) {
-      e.preventDefault();
+    function applyCompanyFormPatch() {
       var patch = {
         contact: {
           phone: document.getElementById("cPhone").value.trim(),
@@ -767,17 +1009,26 @@
       Object.assign(SITE_CONFIG.social, patch.social);
       SITE_CONFIG.googleMapsQuery = patch.googleMapsQuery;
       SITE_CONFIG.googleMapsEmbedUrl = patch.googleMapsEmbedUrl;
+    }
+
+    document.getElementById("companyForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      applyCompanyFormPatch();
       var note = document.getElementById("companySavedNote");
       note.hidden = false;
       setTimeout(function () { note.hidden = true; }, 4000);
     });
 
     document.getElementById("exportConfigBtn").addEventListener("click", exportConfig);
+    document.getElementById("publishConfigBtn").addEventListener("click", function () {
+      applyCompanyFormPatch();
+      publishConfig(this);
+    });
   }
 
-  function exportConfig() {
+  function buildConfigFileContent() {
     var c = SITE_CONFIG;
-    var content =
+    return (
       "/**\n * ============================================================\n" +
       " *  دار الإتقان للمطابخ والديكورات — ملف الإعدادات المركزي\n" +
       " *  تم إنشاؤه من لوحة التحكم — ارفعه ليحل محل js/config.js\n" +
@@ -800,8 +1051,12 @@
       "    return `https://maps.google.com/maps?q=${encodeURIComponent(query.trim())}&output=embed`;\n" +
       "  }\n" +
       "  return \"\";\n" +
-      "}\n";
-    downloadBlob("config.js", content, "application/javascript;charset=utf-8");
+      "}\n"
+    );
+  }
+
+  function exportConfig() {
+    downloadBlob("config.js", buildConfigFileContent(), "application/javascript;charset=utf-8");
   }
 
   /* =========================================================
@@ -815,8 +1070,12 @@
     initFacebookImport();
     initInstagramImport();
     initCompanyForm();
+    initGithubForm();
     document.getElementById("exportProjectsBtn").addEventListener("click", exportProjects);
     document.getElementById("exportVideosBtn").addEventListener("click", exportVideos);
     document.getElementById("exportInstagramBtn").addEventListener("click", exportInstagram);
+    document.getElementById("publishProjectsBtn").addEventListener("click", function () { publishProjects(this); });
+    document.getElementById("publishVideosBtn").addEventListener("click", function () { publishVideos(this); });
+    document.getElementById("publishInstagramBtn").addEventListener("click", function () { publishInstagram(this); });
   });
 })();

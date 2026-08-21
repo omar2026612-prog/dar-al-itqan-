@@ -102,6 +102,35 @@
     } catch (e) {}
     return `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${id}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
   }
+  function instagramEmbed(url) {
+    return `<blockquote class="instagram-media" data-instgrm-permalink="${url}" data-instgrm-version="14" style="margin:0;width:100%;"></blockquote>`;
+  }
+  function tiktokEmbed(url) {
+    return `<blockquote class="tiktok-embed" cite="${url}" style="max-width:100%;min-width:280px;"><section></section></blockquote>`;
+  }
+  function externalLinkCard(url) {
+    return `<a href="${url}" target="_blank" rel="noopener" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;color:var(--ivory);text-decoration:none;">
+      <span style="font-size:34px;">🎬</span><span style="font-size:14px;">فتح الفيديو في نافذة جديدة</span></a>`;
+  }
+  function videoEmbedHtml(v) {
+    switch (v.type) {
+      case "youtube": return youtubeEmbed(v.url);
+      case "instagram": return instagramEmbed(v.url);
+      case "tiktok": return tiktokEmbed(v.url);
+      case "file": return `<video src="${v.url}" controls preload="metadata"></video>`;
+      case "facebook": return fbPlayerEmbed(v.url);
+      default: return externalLinkCard(v.url);
+    }
+  }
+  // يحمّل سكربتات التضمين الخارجية (انستغرام/تيك توك) مرة واحدة فقط عند الحاجة
+  function loadEmbedScript(src, id) {
+    if (document.getElementById(id)) return;
+    const s = document.createElement("script");
+    s.id = id;
+    s.src = src;
+    s.async = true;
+    document.body.appendChild(s);
+  }
 
   document.addEventListener("DOMContentLoaded", () => {
     const wa = document.getElementById("ctaWaLink");
@@ -120,13 +149,22 @@
     } else {
       grid.innerHTML = list.map((v) => `
         <div class="video-card reveal" data-category="${v.category || "promo"}" data-video-id="${v.id || ""}">
-          <div class="video-card-frame">${v.type === "youtube" ? youtubeEmbed(v.url) : v.type === "file" ? `<video src="${v.url}" controls preload="metadata"></video>` : fbPlayerEmbed(v.url)}</div>
+          <div class="video-card-frame">${videoEmbedHtml(v)}</div>
           <div class="video-card-cap">
             <span class="cat">${categoryLabel(v.category, lang)}</span>
             <h4>${(v.title && v.title[lang]) || ""}</h4>
           </div>
         </div>`).join("");
       document.querySelectorAll(".video-card.reveal").forEach((el) => el.classList.add("is-visible"));
+
+      if (list.some((v) => v.type === "instagram")) {
+        loadEmbedScript("https://www.instagram.com/embed.js", "ig-embed-script");
+        // إن كان السكربت محمّلاً مسبقاً من صفحة أخرى بنفس الجلسة
+        if (window.instgrm) window.instgrm.Embeds.process();
+      }
+      if (list.some((v) => v.type === "tiktok")) {
+        loadEmbedScript("https://www.tiktok.com/embed.js", "tt-embed-script");
+      }
 
       bar.addEventListener("click", (e) => {
         const btn = e.target.closest(".filter-btn");

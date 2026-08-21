@@ -52,6 +52,7 @@ body.admin-body{background:var(--bone);min-height:100vh;}
   color:#4A453D;margin:20px 0;line-height:1.9;
 }
 .notice.ok{background:#EAF6EC;border-color:#3C9A5C;}
+.notice.danger{background:#FBEAEA;border-color:#C0392B;}
 .notice ol,.notice ul{margin-inline-start:20px;margin-top:6px;}
 
 /* ---------- Buttons (admin-scoped) ---------- */
@@ -65,6 +66,9 @@ body.admin-body{background:var(--bone);min-height:100vh;}
 .a-btn.danger{background:transparent;border-color:#b23;color:#b23;}
 .a-btn.danger:hover{background:#b23;color:#fff;}
 .a-btn.sm{padding:7px 14px;font-size:12.5px;}
+.a-btn.publish-btn{background:var(--bronze);border-color:var(--bronze);color:var(--charcoal);}
+.a-btn.publish-btn:hover{background:var(--bronze-light,#c9a15a);}
+.a-btn.publish-btn:disabled{opacity:.6;cursor:wait;}
 .a-actions{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0;}
 
 /* ---------- Table ---------- */

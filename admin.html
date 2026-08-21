@@ -38,6 +38,7 @@
       <button data-panel="facebook">📘 ربط فيسبوك</button>
       <button data-panel="instagram">📸 ربط انستغرام</button>
       <button data-panel="company">🏷️ بيانات الشركة</button>
+      <button data-panel="publish">🚀 النشر المباشر</button>
       <button data-panel="help">❓ طريقة الاستخدام</button>
     </nav>
     <a href="index.html" class="view-site" target="_blank">↗ عرض الموقع</a>
@@ -57,6 +58,7 @@
       <div class="a-actions">
         <button class="a-btn" id="newProjectBtn">+ مشروع جديد</button>
         <button class="a-btn outline" id="exportProjectsBtn">⬇ تنزيل ملف المشاريع (projects.js)</button>
+        <button class="a-btn publish-btn" id="publishProjectsBtn">🚀 نشر مباشر على الموقع</button>
       </div>
 
       <table class="a-table" id="projectsTable">
@@ -132,6 +134,7 @@
       <div class="a-actions">
         <button class="a-btn" id="newVideoBtn">+ فيديو جديد</button>
         <button class="a-btn outline" id="exportVideosBtn">⬇ تنزيل ملف الفيديوهات (videos.js)</button>
+        <button class="a-btn publish-btn" id="publishVideosBtn">🚀 نشر مباشر على الموقع</button>
       </div>
 
       <table class="a-table" id="videosTable">
@@ -150,8 +153,8 @@
 
         <div class="a-grid">
           <div class="a-field full" id="vLinkGroup">
-            <label>رابط الفيديو (فيسبوك أو يوتيوب) *</label>
-            <input type="url" id="vUrl" placeholder="https://www.facebook.com/itqank/videos/..." />
+            <label>رابط الفيديو (فيسبوك، يوتيوب، انستغرام، تيك توك، أو أي موقع آخر) *</label>
+            <input type="url" id="vUrl" placeholder="https://www.facebook.com/itqank/videos/... أو أي رابط فيديو آخر" />
             <span class="sub" id="vTypeDetected"></span>
           </div>
           <div class="a-field full" id="vFileGroup" hidden>
@@ -258,6 +261,7 @@
       <div class="a-empty" id="instagramEmpty" hidden>لا توجد منشورات مميَّزة بعد.</div>
       <div class="a-actions" style="margin-top:16px;">
         <button class="a-btn outline" id="exportInstagramBtn">⬇ تنزيل ملف انستغرام (instagram.js)</button>
+        <button class="a-btn publish-btn" id="publishInstagramBtn">🚀 نشر مباشر على الموقع</button>
       </div>
     </section>
 
@@ -300,14 +304,82 @@
         <div class="a-form-actions">
           <button type="submit" class="a-btn">حفظ ومعاينة فورية</button>
           <button type="button" class="a-btn outline" id="exportConfigBtn">⬇ تنزيل ملف الإعدادات (config.js)</button>
+          <button type="button" class="a-btn publish-btn" id="publishConfigBtn">🚀 نشر مباشر على الموقع</button>
         </div>
         <div class="notice" id="companySavedNote" hidden>تم الحفظ — التغييرات ظاهرة الآن في موقعك (نفس المتصفح). لا تنسَ تنزيل الملف ورفعه لنشرها لكل الزوار.</div>
       </form>
     </section>
 
+    <!-- ===================== النشر المباشر (GitHub) ===================== -->
+    <section class="admin-panel" id="panel-publish">
+      <div class="admin-head">
+        <div>
+          <h2>النشر المباشر على GitHub</h2>
+          <p>اربط لوحة التحكم مرة واحدة بمستودع موقعك على GitHub، وبعدها أي تعديل تحفظه (فيديو، مشروع،
+            منشور انستغرام، بيانات الشركة) ينشر مباشرة لجميع الزوار بضغطة واحدة — بدون تنزيل ملفات أو رفعها يدوياً.</p>
+        </div>
+      </div>
+
+      <div class="notice" id="ghStatusNotice"></div>
+
+      <form class="a-form" id="githubForm">
+        <div class="a-grid">
+          <div class="a-field">
+            <label>اسم المستخدم أو المنظمة على GitHub *</label>
+            <input type="text" id="ghOwner" placeholder="مثال: ahmed" required />
+          </div>
+          <div class="a-field">
+            <label>اسم المستودع (Repository) *</label>
+            <input type="text" id="ghRepo" placeholder="مثال: dar-al-itqan" required />
+          </div>
+          <div class="a-field">
+            <label>الفرع (Branch)</label>
+            <input type="text" id="ghBranch" placeholder="main" />
+          </div>
+          <div class="a-field full">
+            <label>مسار الموقع داخل المستودع <span class="sub">(اتركه فارغاً إن كانت الملفات في الجذر مباشرة)</span></label>
+            <input type="text" id="ghBaseDir" placeholder="مثال: itqan" />
+          </div>
+          <div class="a-field full">
+            <label>مفتاح الوصول (Personal Access Token) *</label>
+            <div style="display:flex;gap:8px;">
+              <input type="password" id="ghToken" placeholder="github_pat_xxxxxxxxxxxx" style="flex:1;" />
+              <button type="button" class="a-btn outline sm" id="ghShowToken">إظهار</button>
+            </div>
+            <span class="sub">يُحفظ في متصفحك فقط، ولا يُنزَّل أو يُرفع أبداً ضمن أي ملف.</span>
+          </div>
+        </div>
+        <div class="a-form-actions">
+          <button type="submit" class="a-btn">حفظ واختبار الاتصال</button>
+          <button type="button" class="a-btn danger outline" id="ghDisconnectBtn">🗑 إزالة الربط من هذا المتصفح</button>
+        </div>
+      </form>
+
+      <div class="notice ok" style="margin-top:26px;">
+        <b>كيف تنشئ مفتاح وصول آمن (يخص هذا المستودع فقط)؟</b>
+        <ol>
+          <li>من حساب GitHub: <b>Settings → Developer settings → Personal access tokens → Fine-grained tokens</b>.</li>
+          <li>اضغط <b>Generate new token</b>. اختر اسماً مثل "itqan-admin".</li>
+          <li>في <b>Repository access</b> اختر <b>Only select repositories</b> وحدد مستودع موقعك فقط (وليس كل حساباتك).</li>
+          <li>في <b>Permissions → Repository permissions</b>، اجعل <b>Contents</b> = <b>Read and write</b>. اترك الباقي بدون تغيير.</li>
+          <li>اضغط <b>Generate token</b> وانسخه فوراً (لن يظهر مرة أخرى) والصقه في الحقل أعلاه.</li>
+        </ol>
+        هذا المفتاح لا يملك أي صلاحية على حسابك أو مستودعاتك الأخرى — فقط تعديل ملفات هذا الموقع تحديداً.
+        لا تشارك هذا المفتاح مع أحد، ولا رابط <b>admin.html</b> نفسه، وإن استخدمت جهازاً مشتركاً اضغط "إزالة الربط" بعد الانتهاء.
+      </div>
+    </section>
+
     <!-- ===================== طريقة الاستخدام ===================== -->
     <section class="admin-panel" id="panel-help">
       <div class="admin-head"><div><h2>طريقة الاستخدام</h2></div></div>
+
+      <div class="notice ok">
+        <b>الطريقة الأسرع: النشر المباشر</b><br/>
+        من تبويب "🚀 النشر المباشر" اربط لوحة التحكم بمستودعك على GitHub مرة واحدة (خطوات مبسّطة موجودة هناك)،
+        وبعدها زر "🚀 نشر مباشر على الموقع" الموجود بجانب كل عنصر (مشروع/فيديو/منشور انستغرام/بيانات الشركة)
+        يكفي لوحده — التعديل يظهر لجميع الزوار خلال دقيقة أو دقيقتين، بدون تنزيل أي ملف أو رفعه يدوياً.
+        الخطوات بالأسفل (تنزيل ثم رفع يدوي) تبقى بديلاً يعمل دائماً إن فضّلت عدم ربط GitHub.
+      </div>
 
       <div class="notice">
         <b>كيف تعمل لوحة التحكم هذه؟</b><br/>
