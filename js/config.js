@@ -72,6 +72,14 @@ const SITE_CONFIG = {
     en: "Hello, I'd like to inquire about kitchen/decor design and execution.",
   },
 
+  // ---------- الشريط المتحرك (أعلى كل صفحات الموقع) ----------
+  // نص واحد يُعرض بحركة مستمرة أعلى الهيدر — عدّله من تبويب "بيانات الشركة"
+  // في لوحة التحكم، أو مباشرة هنا. اترك النص فارغاً لإخفاء الشريط بالكامل.
+  tickerText: {
+    ar: "دار الإتقان للمطابخ والديكور  •  نصنع مساحات تليق بذوقك  •  للاستفسار والحجز: +968 93966645",
+    en: "Dar Al Itqan Kitchens and Decor  •  Crafting spaces worthy of your taste  •  Call us: +968 93966645",
+  },
+
   // ---------- روابط التنقل الرئيسية ----------
   nav: [
     { key: "home", ar: "الرئيسية", en: "Home", href: "index.html" },

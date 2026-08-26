@@ -102,6 +102,30 @@ h3.h-sub{font-size:clamp(20px,2.4vw,26px);line-height:1.4;}
 .btn--wa:hover{background:#2fe375;}
 
 /* ---------- Header ---------- */
+/* ---------- الشريط المتحرك (Ticker) ---------- */
+.site-ticker{
+  position:fixed;inset-inline:0;top:0;z-index:101;height:34px;
+  background:linear-gradient(90deg,var(--charcoal),#2a2620,var(--charcoal));
+  border-bottom:1px solid rgba(176,134,82,.35);
+  display:flex;align-items:center;overflow:hidden;
+}
+.ticker-track{display:flex;white-space:nowrap;animation:ticker-scroll 40s linear infinite;will-change:transform;}
+.ticker-track span{
+  padding-inline-end:0;font-size:12.5px;letter-spacing:.3px;color:var(--bronze-light);
+  font-weight:500;
+}
+.site-ticker:hover .ticker-track{animation-play-state:paused;}
+@keyframes ticker-scroll{
+  from{transform:translateX(0);}
+  to{transform:translateX(-50%);}
+}
+body.has-ticker .site-header{top:34px;}
+@media(max-width:600px){
+  .site-ticker{height:30px;}
+  .ticker-track span{font-size:11px;}
+  body.has-ticker .site-header{top:30px;}
+}
+
 .site-header{
   position:fixed;inset-inline:0;top:0;z-index:100;
   padding:18px 0;

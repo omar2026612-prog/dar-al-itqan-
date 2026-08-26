@@ -9,6 +9,23 @@
 
   const t = (obj) => (obj && typeof obj === "object" ? obj[LANG] || obj.ar : obj);
 
+  /* ---------- الشريط المتحرك ---------- */
+  function renderTicker() {
+    const el = document.getElementById("site-header");
+    if (!el) return;
+    const text = t(SITE_CONFIG.tickerText);
+    if (!text || !text.trim()) return;
+    const sep = "&nbsp;&nbsp;•&nbsp;&nbsp;";
+    const item = text.trim();
+    // نكرر النص عدة مرات في مسار واحد طويل لضمان تعبئة الشاشة وحلقة تمرير سلسة بلا فراغات
+    const track = Array(8).fill(item).join(sep);
+    const wrap = document.createElement("div");
+    wrap.className = "site-ticker";
+    wrap.innerHTML = `<div class="ticker-track"><span>${track}${sep}</span><span aria-hidden="true">${track}${sep}</span></div>`;
+    el.insertAdjacentElement("beforebegin", wrap);
+    document.body.classList.add("has-ticker");
+  }
+
   /* ---------- Header ---------- */
   function renderHeader() {
     const el = document.getElementById("site-header");
@@ -281,6 +298,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    renderTicker();
     renderHeader();
     renderFooter();
     renderWaFloat();

@@ -300,6 +300,11 @@
               <iframe id="mapPreviewFrame" width="100%" height="260" style="border:0;display:block;" loading="lazy"></iframe>
             </div>
           </div>
+          <div class="a-field full">
+            <label>نص الشريط المتحرك (أعلى كل صفحات الموقع)</label>
+            <input type="text" id="cTickerAr" placeholder="مثال: دار الإتقان للمطابخ والديكور • للاستفسار: +968 93966645" />
+            <span class="sub">اتركه فارغاً لإخفاء الشريط المتحرك بالكامل من الموقع. افصل بين الجمل بـ • .</span>
+          </div>
         </div>
         <div class="a-form-actions">
           <button type="submit" class="a-btn">حفظ ومعاينة فورية</button>
@@ -326,24 +331,24 @@
         <div class="a-grid">
           <div class="a-field">
             <label>اسم المستخدم أو المنظمة على GitHub *</label>
-            <input type="text" id="ghOwner" placeholder="مثال: ahmed" required />
+            <input type="text" id="ghOwner" placeholder="مثال: ahmed" style="direction:ltr;text-align:left;" required />
           </div>
           <div class="a-field">
             <label>اسم المستودع (Repository) *</label>
-            <input type="text" id="ghRepo" placeholder="مثال: dar-al-itqan" required />
+            <input type="text" id="ghRepo" placeholder="مثال: dar-al-itqan" style="direction:ltr;text-align:left;" required />
           </div>
           <div class="a-field">
             <label>الفرع (Branch)</label>
-            <input type="text" id="ghBranch" placeholder="main" />
+            <input type="text" id="ghBranch" placeholder="main" style="direction:ltr;text-align:left;" />
           </div>
           <div class="a-field full">
             <label>مسار الموقع داخل المستودع <span class="sub">(اتركه فارغاً إن كانت الملفات في الجذر مباشرة)</span></label>
-            <input type="text" id="ghBaseDir" placeholder="مثال: itqan" />
+            <input type="text" id="ghBaseDir" placeholder="مثال: itqan" style="direction:ltr;text-align:left;" />
           </div>
           <div class="a-field full">
             <label>مفتاح الوصول (Personal Access Token) *</label>
             <div style="display:flex;gap:8px;">
-              <input type="password" id="ghToken" placeholder="github_pat_xxxxxxxxxxxx" style="flex:1;" />
+              <input type="password" id="ghToken" placeholder="github_pat_xxxxxxxxxxxx" style="flex:1;direction:ltr;text-align:left;" />
               <button type="button" class="a-btn outline sm" id="ghShowToken">إظهار</button>
             </div>
             <span class="sub">يُحفظ في متصفحك فقط، ولا يُنزَّل أو يُرفع أبداً ضمن أي ملف.</span>

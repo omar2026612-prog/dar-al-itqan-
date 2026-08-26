@@ -964,6 +964,7 @@
     var mapsQuery = SITE_CONFIG.googleMapsQuery || "";
     document.getElementById("cMapsQuery").value = mapsQuery.startsWith("[") ? "" : mapsQuery;
     document.getElementById("cMaps").value = SITE_CONFIG.googleMapsEmbedUrl || "";
+    document.getElementById("cTickerAr").value = (SITE_CONFIG.tickerText && SITE_CONFIG.tickerText.ar) || "";
     updateMapPreview();
   }
 
@@ -1002,6 +1003,10 @@
         },
         googleMapsQuery: document.getElementById("cMapsQuery").value.trim(),
         googleMapsEmbedUrl: document.getElementById("cMaps").value.trim(),
+        tickerText: {
+          ar: document.getElementById("cTickerAr").value.trim(),
+          en: (SITE_CONFIG.tickerText && SITE_CONFIG.tickerText.en) || "",
+        },
       };
       state.configPatch = patch;
       saveConfigPatch();
@@ -1009,6 +1014,7 @@
       Object.assign(SITE_CONFIG.social, patch.social);
       SITE_CONFIG.googleMapsQuery = patch.googleMapsQuery;
       SITE_CONFIG.googleMapsEmbedUrl = patch.googleMapsEmbedUrl;
+      SITE_CONFIG.tickerText = patch.tickerText;
     }
 
     document.getElementById("companyForm").addEventListener("submit", function (e) {
@@ -1036,7 +1042,7 @@
       "const SITE_CONFIG = " + JSON.stringify({
         companyName: c.companyName, tagline: c.tagline, shortDescription: c.shortDescription, country: c.country,
         contact: c.contact, social: c.social, googleMapsQuery: c.googleMapsQuery, googleMapsEmbedUrl: c.googleMapsEmbedUrl,
-        whatsappDefaultMessage: c.whatsappDefaultMessage, nav: c.nav, adminPasscode: c.adminPasscode,
+        whatsappDefaultMessage: c.whatsappDefaultMessage, tickerText: c.tickerText, nav: c.nav, adminPasscode: c.adminPasscode,
       }, null, 2) + ";\n\n" +
       "function getWhatsAppLink(customMessage) {\n" +
       "  const number = SITE_CONFIG.contact.whatsapp.replace(/[^0-9]/g, \"\");\n" +
