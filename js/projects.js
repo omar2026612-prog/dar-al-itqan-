@@ -3,24 +3,22 @@
  */
 let PROJECTS = [
   {
-    "id": "kitchens-mtaito3l73",
+    "id": "kitchens-mtak02st73",
     "category": "kitchens",
     "title": {
-      "ar": "مطبخ",
-      "en": "مطبخ"
+      "ar": "مطبح عصري تصميم مميز",
+      "en": "مطبح عصري تصميم مميز"
     },
     "location": {
       "ar": "معرض دار الإتقان",
       "en": "Dar Al Itqan Showroom"
     },
-    "cover": "images/projects/kitchens-mtaito3l73-cover.jpg",
+    "cover": "images/projects/kitchens-mtak02st73-cover.jpg",
     "gallery": [
-      "images/projects/kitchens-mtaito3l73-g1.jpg",
-      "images/projects/kitchens-mtaito3l73-g2.jpg",
-      "images/projects/kitchens-mtaito3l73-g3.jpg",
-      "images/projects/kitchens-mtaito3l73-g4.jpg",
-      "images/projects/kitchens-mtaito3l73-g5.jpg",
-      "images/projects/kitchens-mtaito3l73-g6.jpg"
+      "images/projects/kitchens-mtak02st73-g1.jpg",
+      "images/projects/kitchens-mtak02st73-g2.jpg",
+      "images/projects/kitchens-mtak02st73-g3.jpg",
+      "images/projects/kitchens-mtak02st73-g4.jpg"
     ],
     "description": {
       "ar": "",
