@@ -59,6 +59,19 @@
     </div>
   </section>
 
+  <!-- ============ روابط أخرى: يوتيوب / تيك توك / سناب شات ============ -->
+  <section class="section--tight section--bone">
+    <div class="container" style="text-align:center;">
+      <span class="eyebrow" style="justify-content:center;">تابعنا أيضاً على</span>
+      <h2 class="h-title" style="font-size:clamp(24px,3.6vw,32px);margin-bottom:26px;">منصات أخرى</h2>
+      <div id="otherSocialLinks" style="display:flex;flex-wrap:wrap;justify-content:center;gap:14px;"></div>
+      <p class="lede" style="margin-top:20px;max-width:520px;margin-inline:auto;font-size:13px;color:#8a8478;">
+        فيديوهات يوتيوب وتيك توك المُضافة تظهر أيضاً مُضمَّنة وقابلة للتشغيل في
+        <a href="videos.html" style="color:var(--bronze);text-decoration:underline;">صفحة الفيديوهات</a>.
+      </p>
+    </div>
+  </section>
+
   <section class="cta-band">
     <h2>عندك فكرة تريد رؤيتها منفَّذة؟</h2>
     <p>تواصل معنا وسنحوّلها إلى مساحة حقيقية بنفس مستوى الدقة الذي تراه في أعمالنا.</p>
@@ -109,6 +122,23 @@
       document.body.appendChild(s);
     } else {
       igEmpty.hidden = false;
+    }
+
+    // ---------- روابط أخرى: يوتيوب / تيك توك / سناب شات ----------
+    const otherLinks = [
+      { key: "youtube", label: "يوتيوب ↗" },
+      { key: "tiktok", label: "تيك توك ↗" },
+      { key: "snapchat", label: "سناب شات ↗" },
+    ].filter((p) => SITE_CONFIG.social[p.key] && !SITE_CONFIG.social[p.key].includes("["));
+    const otherWrap = document.getElementById("otherSocialLinks");
+    if (otherWrap) {
+      if (otherLinks.length) {
+        otherWrap.innerHTML = otherLinks.map((p) =>
+          `<a href="${SITE_CONFIG.social[p.key]}" target="_blank" rel="noopener" class="btn btn--dark">${p.label}</a>`
+        ).join("");
+      } else {
+        otherWrap.closest("section").hidden = true;
+      }
     }
 
     // ---------- فيسبوك: تضمين صفحة حي (Page Plugin) ----------

@@ -57,6 +57,8 @@ const SITE_CONFIG = {
     facebook: "https://www.facebook.com/itqank",
     instagram: "https://www.instagram.com/itqank",
     tiktok: "https://www.tiktok.com/@itqank",
+    youtube: "https://youtube.com/@itqank",
+    snapchat: "https://www.snapchat.com/add/itqank",
   },
 
   // ---------- خرائط جوجل ----------

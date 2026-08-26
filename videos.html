@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>الفيديوهات | دار الإتقان للمطابخ والديكور</title>
-<meta name="description" content="فيديوهات دعائية ولقطات من مشاريع دار الإتقان للمطابخ والديكور، وآخر منشورات صفحتنا على فيسبوك." />
+<meta name="description" content="فيديوهات دعائية ولقطات من مشاريع دار الإتقان للمطابخ والديكور." />
 <link rel="canonical" href="https://ahmed.github.io/dar-al-itqan/videos.html" />
 <meta name="robots" content="index,follow" />
 
@@ -23,7 +23,7 @@
       <span class="eyebrow">الدعاية والمرئيات</span>
       <h1 class="h-title">الفيديوهات</h1>
       <p class="lede" style="margin-top:16px;color:rgba(246,241,231,.75);">
-        فيديوهات من مشاريعنا ومعرضنا، بالإضافة إلى آخر ما ننشره مباشرةً على صفحتنا في فيسبوك.
+        فيديوهات من مشاريعنا ومعرضنا — من رفعنا المباشر أو من صفحاتنا على فيسبوك ويوتيوب وانستغرام وتيك توك.
       </p>
     </div>
   </section>
@@ -45,18 +45,6 @@
       <div class="testi-empty" id="videoEmpty" hidden>
         <p>سيتم عرض الفيديوهات هنا فور إضافتها.</p>
       </div>
-    </div>
-  </section>
-
-  <!-- ============ تابعنا على فيسبوك — تضمين حي يتحدث تلقائياً ============ -->
-  <section class="section--tight section--bone">
-    <div class="container" style="max-width:640px;text-align:center;">
-      <span class="eyebrow" style="justify-content:center;">مباشر من صفحتنا</span>
-      <h2 class="h-title" style="font-size:clamp(26px,4vw,38px);">تابعنا على فيسبوك</h2>
-      <p class="lede" style="margin:14px auto 34px;">
-        هذا القسم متصل مباشرة بصفحة فيسبوك الرسمية لدار الإتقان — أي منشور أو فيديو جديد يُنشر هناك يظهر هنا تلقائياً دون أي تدخل يدوي.
-      </p>
-      <div id="fbPageEmbed" style="display:flex;justify-content:center;"></div>
     </div>
   </section>
 
@@ -176,15 +164,6 @@
           it.style.display = cat === "all" || it.dataset.category === cat ? "" : "none";
         });
       });
-    }
-
-    // تضمين صفحة فيسبوك الحي (Page Plugin) — يعمل تلقائياً بدون إعداد إضافي
-    const fbUrl = (SITE_CONFIG.social.facebook || "").split("?")[0];
-    if (fbUrl && !fbUrl.includes("[")) {
-      document.getElementById("fbPageEmbed").innerHTML = `
-        <iframe src="https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(fbUrl)}&tabs=timeline&width=500&height=650&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true"
-          width="500" height="650" style="border:none;overflow:hidden;max-width:100%;" scrolling="no" frameborder="0"
-          allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" loading="lazy"></iframe>`;
     }
   });
 </script>

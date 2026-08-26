@@ -772,6 +772,55 @@
     return res.json();
   }
 
+  async function ghApiJson(path, method, payload) {
+    var res = await fetch(ghApiBase() + path, {
+      method: method,
+      headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      var msg = "HTTP " + res.status;
+      try { var j = await res.json(); if (j.message) msg = j.message; } catch (e2) {}
+      throw new Error(msg);
+    }
+    return res.json();
+  }
+
+  /**
+   * ينشر عدة ملفات (نصية أو ثنائية كالفيديوهات والصور) في التزام واحد (commit)
+   * عبر Git Data API — على عكس ghPutFile (Contents API) المحدود بـ 1 ميجابايت
+   * للملف الواحد، هذا المسار يدعم ملفات أكبر بكثير (حتى ~100 ميجابايت) وهو
+   * سبب فشل نشر الفيديوهات سابقاً بصمت عند تجاوزها 1 ميجابايت.
+   * files: [{ path, content, isBase64 }]
+   */
+  async function ghCommitFiles(files, message) {
+    var branch = state.github.branch || "main";
+    var refData = await ghApiJson("/git/ref/" + ghEncodePath("heads/" + branch), "GET").catch(function (e) {
+      throw new Error("تعذّر قراءة الفرع \"" + branch + "\": " + e.message);
+    });
+    var headCommitSha = refData.object.sha;
+    var commitData = await ghApiJson("/git/commits/" + headCommitSha, "GET");
+    var baseTreeSha = commitData.tree.sha;
+
+    var entries = [];
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      var b64 = f.isBase64 ? f.content : utf8ToBase64(f.content);
+      var blob = await ghApiJson("/git/blobs", "POST", { content: b64, encoding: "base64" });
+      entries.push({ path: ghFullPath(f.path), mode: "100644", type: "blob", sha: blob.sha });
+    }
+
+    var newTree = await ghApiJson("/git/trees", "POST", { base_tree: baseTreeSha, tree: entries });
+    var newCommit = await ghApiJson("/git/commits", "POST", { message: message, tree: newTree.sha, parents: [headCommitSha] });
+    await fetch(ghApiBase() + "/git/refs/" + ghEncodePath("heads/" + branch), {
+      method: "PATCH",
+      headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+      body: JSON.stringify({ sha: newCommit.sha }),
+    }).then(function (res) {
+      if (!res.ok) throw new Error("فشل تحديث الفرع بعد النشر (HTTP " + res.status + ")");
+    });
+  }
+
   function ghStatusNotice() {
     var el = document.getElementById("ghStatusNotice");
     if (!el) return;
@@ -854,12 +903,13 @@
   async function publishProjects(btn) {
     if (!requireGithub()) return;
     if (!state.projects.length) { alert("لا توجد مشاريع لنشرها بعد."); return; }
-    setBtnBusy(btn, "⏳ جارٍ رفع الصور...");
+    setBtnBusy(btn, "⏳ جارٍ التحضير...");
     try {
+      var filesToCommit = [];
       for (var p of state.projects) {
         if (p._pendingCover) {
           var cf = p.id + "-cover." + p._pendingCover.ext;
-          await ghPutFile("images/projects/" + cf, p._pendingCover.dataUrl.split(",")[1], "رفع صورة غلاف: " + p.id);
+          filesToCommit.push({ path: "images/projects/" + cf, content: p._pendingCover.dataUrl.split(",")[1], isBase64: true });
           p.cover = "images/projects/" + cf;
           delete p._pendingCover;
         }
@@ -867,19 +917,22 @@
           for (var gi = 0; gi < p._pendingGallery.length; gi++) {
             var g = p._pendingGallery[gi];
             var gf = p.id + "-g" + (gi + 1) + "." + g.ext;
-            await ghPutFile("images/projects/" + gf, g.dataUrl.split(",")[1], "رفع صورة مشروع: " + p.id);
+            filesToCommit.push({ path: "images/projects/" + gf, content: g.dataUrl.split(",")[1], isBase64: true });
           }
           delete p._pendingGallery;
         }
       }
-      btn.textContent = "⏳ جارٍ نشر بيانات المشاريع...";
       var clean = state.projects.map(function (p) {
         var c = Object.assign({}, p);
         delete c._pendingCover; delete c._pendingGallery;
         return c;
       });
       var content = "/**\n * بيانات المشاريع — تم إنشاؤه من لوحة التحكم\n */\n" + "let PROJECTS = " + JSON.stringify(clean, null, 2) + ";\n";
-      await ghPutFile("js/projects.js", utf8ToBase64(content), "تحديث المشاريع من لوحة التحكم");
+      filesToCommit.push({ path: "js/projects.js", content: content, isBase64: false });
+
+      btn.textContent = filesToCommit.length > 1 ? "⏳ جارٍ رفع الصور ونشر البيانات..." : "⏳ جارٍ النشر...";
+      await ghCommitFiles(filesToCommit, "تحديث المشاريع من لوحة التحكم");
+
       saveProjects();
       renderProjectsTable();
       alert("تم نشر المشاريع على الموقع مباشرة ✓ (سيظهر التحديث خلال دقيقة أو دقيقتين)");
@@ -893,22 +946,26 @@
   async function publishVideos(btn) {
     if (!requireGithub()) return;
     if (!state.videos.length) { alert("لا توجد فيديوهات لنشرها بعد."); return; }
-    setBtnBusy(btn, "⏳ جارٍ رفع الفيديو...");
+    setBtnBusy(btn, "⏳ جارٍ التحضير...");
     try {
+      var filesToCommit = [];
       for (var v of state.videos) {
         if (v._pendingVideo) {
           var filename = v.id + "." + v._pendingVideo.ext;
-          await ghPutFile("videos/" + filename, v._pendingVideo.dataUrl.split(",")[1], "رفع فيديو: " + (v.title && v.title.ar));
+          filesToCommit.push({ path: "videos/" + filename, content: v._pendingVideo.dataUrl.split(",")[1], isBase64: true });
           v.url = "videos/" + filename;
           delete v._pendingVideo;
         }
       }
-      btn.textContent = "⏳ جارٍ نشر بيانات الفيديوهات...";
       var clean = state.videos.map(function (v) {
         return { id: v.id, type: v.type, url: v.url, title: v.title, category: v.category };
       });
       var content = "/**\n * بيانات الفيديوهات — تم إنشاؤه من لوحة التحكم\n */\n" + "let VIDEOS = " + JSON.stringify(clean, null, 2) + ";\n";
-      await ghPutFile("js/videos.js", utf8ToBase64(content), "تحديث الفيديوهات من لوحة التحكم");
+      filesToCommit.push({ path: "js/videos.js", content: content, isBase64: false });
+
+      btn.textContent = filesToCommit.length > 1 ? "⏳ جارٍ رفع الفيديو ونشر البيانات..." : "⏳ جارٍ النشر...";
+      await ghCommitFiles(filesToCommit, "تحديث الفيديوهات من لوحة التحكم");
+
       saveVideos();
       renderVideosTable();
       alert("تم نشر الفيديو على الموقع مباشرة ✓ (سيظهر في صفحة الفيديوهات خلال دقيقة أو دقيقتين)");
@@ -961,6 +1018,8 @@
     document.getElementById("cFacebook").value = s.facebook || "";
     document.getElementById("cInstagram").value = s.instagram || "";
     document.getElementById("cTiktok").value = s.tiktok || "";
+    document.getElementById("cYoutube").value = s.youtube || "";
+    document.getElementById("cSnapchat").value = s.snapchat || "";
     var mapsQuery = SITE_CONFIG.googleMapsQuery || "";
     document.getElementById("cMapsQuery").value = mapsQuery.startsWith("[") ? "" : mapsQuery;
     document.getElementById("cMaps").value = SITE_CONFIG.googleMapsEmbedUrl || "";
@@ -1000,6 +1059,8 @@
           facebook: document.getElementById("cFacebook").value.trim(),
           instagram: document.getElementById("cInstagram").value.trim(),
           tiktok: document.getElementById("cTiktok").value.trim(),
+          youtube: document.getElementById("cYoutube").value.trim(),
+          snapchat: document.getElementById("cSnapchat").value.trim(),
         },
         googleMapsQuery: document.getElementById("cMapsQuery").value.trim(),
         googleMapsEmbedUrl: document.getElementById("cMaps").value.trim(),
