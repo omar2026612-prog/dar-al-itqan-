@@ -3,22 +3,12 @@
  */
 let VIDEOS = [
   {
-    "id": "video-mtakubfm45",
+    "id": "video-mtap9mcj29",
     "type": "file",
-    "url": "videos/video-mtakubfm45.mp4",
+    "url": "videos/video-mtap9mcj29.mp4",
     "title": {
       "ar": "دار الاتقان",
       "en": "دار الاتقان"
-    },
-    "category": "promo"
-  },
-  {
-    "id": "video-mtakwjua70",
-    "type": "facebook",
-    "url": "https://www.facebook.com/share/r/1BwZfM434H/",
-    "title": {
-      "ar": "من تسليم غرفة دريسنج بولاية صحار  من خشب الشيبورد الاستاروود  تواصل معانا وأسال على العروض والخصومات  من دار الاتقان للمطابخ والديكور",
-      "en": "من تسليم غرفة دريسنج بولاية صحار  من خشب الشيبورد الاستاروود  تواصل معانا وأسال على العروض والخصومات  من دار الاتقان للمطابخ والديكور"
     },
     "category": "promo"
   }
