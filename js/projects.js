@@ -3,7 +3,7 @@
  */
 let PROJECTS = [
   {
-    "id": "kitchens-mtbgto4n62",
+    "id": "kitchens-mtbhgnr141",
     "category": "kitchens",
     "title": {
       "ar": "مطبح عصري تصميم مميز",
@@ -13,12 +13,12 @@ let PROJECTS = [
       "ar": "معرض دار الإتقان",
       "en": "Dar Al Itqan Showroom"
     },
-    "cover": "images/projects/kitchens-mtbgto4n62-cover.jpg",
+    "cover": "images/projects/kitchens-mtbhgnr141-cover.jpg",
     "gallery": [
-      "images/projects/kitchens-mtbgto4n62-g1.jpg",
-      "images/projects/kitchens-mtbgto4n62-g2.jpg",
-      "images/projects/kitchens-mtbgto4n62-g3.jpg",
-      "images/projects/kitchens-mtbgto4n62-g4.jpg"
+      "images/projects/kitchens-mtbhgnr141-g1.jpg",
+      "images/projects/kitchens-mtbhgnr141-g2.jpg",
+      "images/projects/kitchens-mtbhgnr141-g3.jpg",
+      "images/projects/kitchens-mtbhgnr141-g4.jpg"
     ],
     "description": {
       "ar": "",
