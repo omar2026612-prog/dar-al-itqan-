@@ -41,5 +41,25 @@ let VIDEOS = [
       "en": "زاوية التريند | زاوية عملية داخل الدريسنج | زاوية حرف L| شيبورد ايطالي| أضاءة ليد مخفية | الإتقان"
     },
     "category": "promo"
+  },
+  {
+    "id": "video-mtbhye0j34",
+    "type": "youtube",
+    "url": "https://www.youtube.com/shorts/4_Ttjcu1Ka0?feature=share",
+    "title": {
+      "ar": "تصميم دريسنج روم| دار الإتقان للمطابخ والديكور| سلطنة عمان|#مطابخ #kitchen #ديكورات #ديكور",
+      "en": "تصميم دريسنج روم| دار الإتقان للمطابخ والديكور| سلطنة عمان|#مطابخ #kitchen #ديكورات #ديكور"
+    },
+    "category": "promo"
+  },
+  {
+    "id": "video-mtbi0dvs15",
+    "type": "youtube",
+    "url": "https://www.youtube.com/shorts/4rLPJgaTiik?feature=share",
+    "title": {
+      "ar": "لا تشتري من دار الإتقان| سلطنة عمان | شوف الفيديو 👇 #مطابخ #اكسبلور #رخام #kitchen #ديكورات #مطبخ",
+      "en": "لا تشتري من دار الإتقان| سلطنة عمان | شوف الفيديو 👇 #مطابخ #اكسبلور #رخام #kitchen #ديكورات #مطبخ"
+    },
+    "category": "promo"
   }
 ];
