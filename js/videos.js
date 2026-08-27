@@ -21,5 +21,15 @@ let VIDEOS = [
       "en": "دار الاتقان"
     },
     "category": "promo"
+  },
+  {
+    "id": "video-mtbgjadr93",
+    "type": "instagram",
+    "url": "https://www.instagram.com/itqank/reel/DbbOe5jttUZ/",
+    "title": {
+      "ar": "دار الاتقان",
+      "en": "دار الاتقان"
+    },
+    "category": "promo"
   }
 ];
