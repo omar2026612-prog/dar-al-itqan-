@@ -3,7 +3,9 @@
 
   var LS_PROJECTS = "itqan_admin_projects";
   var LS_VIDEOS = "itqan_admin_videos";
+  var LS_INSTAGRAM = "itqan_admin_instagram";
   var LS_CONFIG = "itqan_admin_config";
+  var LS_GITHUB = "itqan_github_settings"; // {owner, repo, branch, baseDir, token} — يبقى محلياً فقط، لا يُصدَّر أبداً
   var SS_AUTH = "itqan_admin_auth";
   // علم دائم (لا يُمسح بإغلاق المتصفح) يُستخدم لإظهار "وضع المالك" في كل صفحات
   // الموقع العامة (أيقونة التحكم + أزرار تعديل سريعة) — يبقى حتى تسجيل الخروج يدوياً.
@@ -17,14 +19,28 @@
       var raw = localStorage.getItem(LS_PROJECTS);
       if (raw) return JSON.parse(raw);
     } catch (e) {}
-    return JSON.parse(JSON.stringify(window.PROJECTS || []));
+    return JSON.parse(JSON.stringify((typeof PROJECTS !== "undefined" && PROJECTS) || []));
   }
   function loadVideos() {
     try {
       var raw = localStorage.getItem(LS_VIDEOS);
       if (raw) return JSON.parse(raw);
     } catch (e) {}
-    return JSON.parse(JSON.stringify(window.VIDEOS || []));
+    return JSON.parse(JSON.stringify((typeof VIDEOS !== "undefined" && VIDEOS) || []));
+  }
+  function loadInstagramPosts() {
+    try {
+      var raw = localStorage.getItem(LS_INSTAGRAM);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return JSON.parse(JSON.stringify((typeof INSTAGRAM_POSTS !== "undefined" && INSTAGRAM_POSTS) || []));
+  }
+  function loadGithubSettings() {
+    try {
+      var raw = localStorage.getItem(LS_GITHUB);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return { owner: "", repo: "", branch: "main", baseDir: "", token: "" };
   }
   function loadConfigPatch() {
     try {
@@ -37,21 +53,63 @@
   var state = {
     projects: loadProjects(),
     videos: loadVideos(),
+    instagramPosts: loadInstagramPosts(),
     configPatch: loadConfigPatch(),
+    github: loadGithubSettings(),
     editingProjectId: null,
     editingVideoId: null,
+    editingInstagramId: null,
     pendingCoverImage: null, // {dataUrl, ext}
     pendingGalleryImages: [], // [{dataUrl, ext}]
+    pendingVideoFile: null, // {dataUrl, ext, name}
+    videoMode: "link", // "link" | "file"
   };
 
   function saveProjects() {
-    localStorage.setItem(LS_PROJECTS, JSON.stringify(state.projects));
+    // مهم: لا نخزّن صور الغلاف/المعرض (base64 كبيرة الحجم) داخل localStorage —
+    // نخزّن فقط بيانات المشروع النصية. هذا يمنع فشل الحفظ الصامت عند وجود عدة
+    // صور كبيرة (تجاوز سعة التخزين المحلي). الصور الفعلية تبقى في الذاكرة
+    // (state.projects) طوال الجلسة، وهذا كافٍ للنشر المباشر فوراً بعد الإضافة.
+    try {
+      var forStorage = state.projects.map(function (p) {
+        var copy = {};
+        for (var k in p) {
+          if (k !== "_pendingCover" && k !== "_pendingGallery") copy[k] = p[k];
+        }
+        return copy;
+      });
+      localStorage.setItem(LS_PROJECTS, JSON.stringify(forStorage));
+    } catch (e) {
+      console.warn("saveProjects failed", e);
+    }
   }
+  // يحاول حفظ الفيديوهات في المتصفح؛ قد يفشل إن كان فيديو الملف المرفوع كبيراً
+  // جداً على سعة التخزين المحلي (localStorage) — في هذه الحالة نتابع العمل
+  // بالحالة الحالية في الذاكرة (كافية لإتمام "التصدير" في نفس الجلسة) ونحذّر المستخدم.
   function saveVideos() {
-    localStorage.setItem(LS_VIDEOS, JSON.stringify(state.videos));
+    try {
+      var forStorage = state.videos.map(function (v) {
+        var copy = {};
+        for (var k in v) {
+          if (k !== "_pendingVideo") copy[k] = v[k];
+        }
+        return copy;
+      });
+      localStorage.setItem(LS_VIDEOS, JSON.stringify(forStorage));
+      return true;
+    } catch (e) {
+      console.warn("saveVideos failed", e);
+      return false;
+    }
+  }
+  function saveInstagramPosts() {
+    localStorage.setItem(LS_INSTAGRAM, JSON.stringify(state.instagramPosts));
   }
   function saveConfigPatch() {
     localStorage.setItem(LS_CONFIG, JSON.stringify(state.configPatch));
+  }
+  function saveGithubSettings() {
+    localStorage.setItem(LS_GITHUB, JSON.stringify(state.github));
   }
 
   var CAT_LABELS = {
@@ -101,7 +159,7 @@
     }
 
     function tryEnter() {
-      var code = normalizeDigits((window.SITE_CONFIG && SITE_CONFIG.adminPasscode) || FALLBACK_PASSCODE);
+      var code = normalizeDigits((typeof SITE_CONFIG !== "undefined" && SITE_CONFIG.adminPasscode) || FALLBACK_PASSCODE);
       var entered = normalizeDigits(pass.value);
       if (entered === code && entered.length > 0) {
         sessionStorage.setItem(SS_AUTH, "1");
@@ -161,6 +219,8 @@
     } else if (newSpec === "video") {
       goToPanel("videos");
       openVideoForm(null);
+    } else if (newSpec === "instagram") {
+      goToPanel("instagram");
     }
     // ننظّف الرابط حتى لا يُعاد فتح نفس النموذج عند تحديث الصفحة
     if (editSpec || newSpec) {
@@ -186,9 +246,12 @@
   function renderAll() {
     renderProjectsTable();
     renderVideosTable();
+    renderInstagramTable();
     fillCompanyForm();
     var fbSpan = document.querySelector("[data-cfg-fb-url]");
     if (fbSpan) fbSpan.textContent = (SITE_CONFIG.social.facebook || "").replace(/^https?:\/\/(www\.)?/, "");
+    var igSpan = document.querySelector("[data-cfg-ig-url]");
+    if (igSpan) igSpan.textContent = (SITE_CONFIG.social.instagram || "").replace(/^https?:\/\/(www\.)?/, "");
   }
 
   /* =========================================================
@@ -400,7 +463,10 @@
   function detectVideoType(url) {
     if (/facebook\.com|fb\.watch/.test(url)) return "facebook";
     if (/youtube\.com|youtu\.be/.test(url)) return "youtube";
-    return "file";
+    if (/instagram\.com/.test(url)) return "instagram";
+    if (/tiktok\.com/.test(url)) return "tiktok";
+    if (/\.(mp4|webm|mov)(\?|$)/i.test(url)) return "file";
+    return "link";
   }
 
   function renderVideosTable() {
@@ -410,7 +476,8 @@
     if (!state.videos.length) { table.hidden = true; empty.hidden = false; return; }
     table.hidden = false; empty.hidden = true;
     tbody.innerHTML = state.videos.map(function (v, i) {
-      var src = v.type === "facebook" ? "فيسبوك" : v.type === "youtube" ? "يوتيوب" : "ملف";
+      var srcLabels = { facebook: "فيسبوك", youtube: "يوتيوب", instagram: "انستغرام", tiktok: "تيك توك", file: "ملف مرفوع", link: "رابط خارجي" };
+      var src = srcLabels[v.type] || "رابط خارجي";
       return '<tr>' +
         '<td>' + ((v.title && v.title.ar) || "") + '</td>' +
         '<td>' + src + '</td>' +
@@ -434,12 +501,26 @@
     });
   }
 
+  function setVideoMode(mode) {
+    state.videoMode = mode;
+    document.querySelectorAll("#vModeToggle .mode-btn").forEach(function (b) {
+      b.classList.toggle("is-active", b.dataset.mode === mode);
+    });
+    document.getElementById("vLinkGroup").hidden = mode !== "link";
+    document.getElementById("vFileGroup").hidden = mode !== "file";
+  }
+
   function resetVideoForm() {
     state.editingVideoId = null;
+    state.pendingVideoFile = null;
     document.getElementById("videoFormTitle").textContent = "فيديو جديد";
     ["vUrl", "vTitleAr", "vTitleEn"].forEach(function (id) { document.getElementById(id).value = ""; });
+    document.getElementById("vFile").value = "";
+    document.getElementById("vFilePreview").innerHTML = "";
+    document.getElementById("vFileNotice").hidden = true;
     document.getElementById("vCategory").value = "promo";
     document.getElementById("vTypeDetected").textContent = "";
+    setVideoMode("link");
   }
 
   function openVideoForm(video) {
@@ -450,10 +531,17 @@
     if (!video) return;
     state.editingVideoId = video.id;
     document.getElementById("videoFormTitle").textContent = "تعديل: " + video.title.ar;
-    document.getElementById("vUrl").value = video.url || "";
     document.getElementById("vTitleAr").value = (video.title && video.title.ar) || "";
     document.getElementById("vTitleEn").value = (video.title && video.title.en) || "";
     document.getElementById("vCategory").value = video.category || "promo";
+    if (video.type === "file") {
+      setVideoMode("file");
+      document.getElementById("vFilePreview").innerHTML = '<div class="a-thumb-item" style="width:160px;height:100px;"><video src="' + video.url + '" controls></video></div>';
+      document.getElementById("vFileNotice").hidden = false;
+    } else {
+      setVideoMode("link");
+      document.getElementById("vUrl").value = video.url || "";
+    }
   }
 
   function initVideoForm() {
@@ -461,41 +549,105 @@
     document.getElementById("cancelVideoBtn").addEventListener("click", function () {
       document.getElementById("videoForm").hidden = true;
     });
+    document.querySelectorAll("#vModeToggle .mode-btn").forEach(function (b) {
+      b.addEventListener("click", function () { setVideoMode(b.dataset.mode); });
+    });
     document.getElementById("vUrl").addEventListener("input", function (e) {
       var type = detectVideoType(e.target.value.trim());
-      var labels = { facebook: "تم التعرف عليه كفيديو فيسبوك ✓", youtube: "تم التعرف عليه كفيديو يوتيوب ✓", file: "سيُعامل كرابط ملف فيديو مباشر" };
+      var labels = { facebook: "تم التعرف عليه كفيديو فيسبوك ✓", youtube: "تم التعرف عليه كفيديو يوتيوب ✓", instagram: "تم التعرف عليه كمنشور انستغرام ✓", tiktok: "تم التعرف عليه كفيديو تيك توك ✓", file: "سيُعامل كرابط ملف فيديو مباشر", link: "سيُعرض كرابط خارجي يُفتح في نافذة جديدة" };
       document.getElementById("vTypeDetected").textContent = e.target.value.trim() ? labels[type] : "";
+    });
+
+    document.getElementById("vFile").addEventListener("change", function (e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      fileToDataUrl(file).then(function (dataUrl) {
+        state.pendingVideoFile = { dataUrl: dataUrl, ext: extFromFile(file), name: file.name };
+        document.getElementById("vFilePreview").innerHTML = '<div class="a-thumb-item" style="width:160px;height:100px;"><video src="' + dataUrl + '" controls></video></div>';
+        document.getElementById("vFileNotice").hidden = false;
+      });
     });
 
     document.getElementById("videoForm").addEventListener("submit", function (e) {
       e.preventDefault();
-      var url = document.getElementById("vUrl").value.trim();
       var titleAr = document.getElementById("vTitleAr").value.trim();
-      if (!url || !titleAr) return;
+      if (!titleAr) return;
 
       var existing = state.editingVideoId ? state.videos.find(function (v) { return v.id === state.editingVideoId; }) : null;
-      var record = {
-        id: existing ? existing.id : slugId("video"),
-        type: detectVideoType(url),
-        url: url,
-        title: { ar: titleAr, en: document.getElementById("vTitleEn").value.trim() || titleAr },
-        category: document.getElementById("vCategory").value,
-      };
+      var id = existing ? existing.id : slugId("video");
+      var record;
+
+      if (state.videoMode === "file") {
+        // فيديو مرفوع من الجهاز: نستخدم رابط Base64 مباشرة كمعاينة فورية وحقيقية
+        // داخل هذا المتصفح، ونحتفظ بنفس البيانات في _pendingVideo لتنزيل الملف
+        // الفعلي عند "تصدير" الفيديوهات، مع مسار نهائي داخل videos/ للاستضافة.
+        var pending = state.pendingVideoFile || (existing && existing._pendingVideo);
+        var url = pending ? pending.dataUrl : (existing ? existing.url : null);
+        if (!url) { alert("الرجاء اختيار ملف فيديو."); return; }
+        record = {
+          id: id,
+          type: "file",
+          url: url,
+          title: { ar: titleAr, en: document.getElementById("vTitleEn").value.trim() || titleAr },
+          category: document.getElementById("vCategory").value,
+        };
+        if (state.pendingVideoFile) record._pendingVideo = state.pendingVideoFile;
+        else if (existing && existing._pendingVideo) record._pendingVideo = existing._pendingVideo;
+      } else {
+        var linkUrl = document.getElementById("vUrl").value.trim();
+        if (!linkUrl) { alert("الرجاء إدخال رابط الفيديو."); return; }
+        record = {
+          id: id,
+          type: detectVideoType(linkUrl),
+          url: linkUrl,
+          title: { ar: titleAr, en: document.getElementById("vTitleEn").value.trim() || titleAr },
+          category: document.getElementById("vCategory").value,
+        };
+      }
+
       if (existing) Object.assign(existing, record);
       else state.videos.push(record);
 
-      saveVideos(); renderVideosTable();
+      var saved = saveVideos();
+      renderVideosTable();
       document.getElementById("videoForm").hidden = true;
+      if (!saved) {
+        alert("تمت الإضافة ويمكنك تنزيلها الآن، لكن الفيديو كبير جداً على مساحة التخزين المؤقت لهذا المتصفح — لن يبقى محفوظاً هنا بعد إغلاق الصفحة، فتأكد من تنزيل ملفات الفيديوهات الآن قبل إغلاق لوحة التحكم.");
+      }
     });
   }
 
   function exportVideos() {
     if (!state.videos.length) { alert("لا توجد فيديوهات لتصديرها بعد."); return; }
+
+    // تنزيل ملفات الفيديو المرفوعة حديثاً بأسمائها الصحيحة، واستبدال الرابط
+    // المؤقت (Base64) في البيانات المصدَّرة بمسار دائم داخل videos/
+    var hadFiles = false;
+    state.videos.forEach(function (v) {
+      if (v._pendingVideo) {
+        hadFiles = true;
+        var filename = v.id + "." + v._pendingVideo.ext;
+        downloadDataUrl(filename, v._pendingVideo.dataUrl);
+        v.url = "videos/" + filename;
+      }
+    });
+
+    var clean = state.videos.map(function (v) {
+      return { id: v.id, type: v.type, url: v.url, title: v.title, category: v.category };
+    });
+
     var content =
       "/**\n * بيانات الفيديوهات — تم إنشاؤه من لوحة التحكم\n" +
-      " * ارفع هذا الملف ليحل محل js/videos.js على الاستضافة.\n */\n" +
-      "let VIDEOS = " + JSON.stringify(state.videos, null, 2) + ";\n";
+      " * ارفع هذا الملف ليحل محل js/videos.js على الاستضافة.\n" +
+      (hadFiles ? " * ضع أي ملفات فيديو تم تنزيلها معه داخل مجلد videos/ على الاستضافة.\n" : "") +
+      " */\n" +
+      "let VIDEOS = " + JSON.stringify(clean, null, 2) + ";\n";
     downloadBlob("videos.js", content, "application/javascript;charset=utf-8");
+
+    // بعد التصدير، ننظّف الروابط المؤقتة الثقيلة (Base64) من الحالة المحفوظة محلياً
+    // لتفادي امتلاء مساحة التخزين المؤقت للمتصفح، مع إبقاء بيانات الفيديو كما هي.
+    state.videos.forEach(function (v) { delete v._pendingVideo; });
+    saveVideos();
   }
 
   /* =========================================================
@@ -522,6 +674,359 @@
   }
 
   /* =========================================================
+     انستغرام — منشورات مميّزة (تضمين رسمي بدون مفتاح API)
+     ========================================================= */
+  function ensureInstagramEmbedScript(cb) {
+    if (window.instgrm) { cb(); return; }
+    var existing = document.getElementById("ig-embed-script");
+    if (existing) { existing.addEventListener("load", cb); return; }
+    var s = document.createElement("script");
+    s.id = "ig-embed-script";
+    s.src = "https://www.instagram.com/embed.js";
+    s.async = true;
+    s.onload = cb;
+    document.body.appendChild(s);
+  }
+
+  function igEmbedHtml(url) {
+    return '<blockquote class="instagram-media" data-instgrm-permalink="' + url + '" data-instgrm-version="14" style="margin:0 auto;max-width:400px;"></blockquote>';
+  }
+
+  function renderInstagramTable() {
+    var tbody = document.getElementById("instagramTbody");
+    var empty = document.getElementById("instagramEmpty");
+    var table = document.getElementById("instagramTable");
+    if (!state.instagramPosts.length) { table.hidden = true; empty.hidden = false; return; }
+    table.hidden = false; empty.hidden = true;
+    tbody.innerHTML = state.instagramPosts.map(function (p, i) {
+      return '<tr>' +
+        '<td><a href="' + p.url + '" target="_blank" rel="noopener">' + p.url + '</a></td>' +
+        '<td>' + (p.caption || "") + '</td>' +
+        '<td class="a-row-actions"><button class="a-btn sm danger" data-del-ig="' + i + '">حذف</button></td></tr>';
+    }).join("");
+    tbody.querySelectorAll("[data-del-ig]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (!confirm("حذف هذا المنشور؟")) return;
+        state.instagramPosts.splice(+btn.dataset.delIg, 1);
+        saveInstagramPosts(); renderInstagramTable();
+      });
+    });
+  }
+
+  function initInstagramImport() {
+    document.getElementById("igImportBtn").addEventListener("click", function () {
+      var url = document.getElementById("igImportUrl").value.trim();
+      var box = document.getElementById("igImportPreview");
+      if (!url) return;
+      box.hidden = false;
+      box.innerHTML = igEmbedHtml(url) +
+        '<div class="a-form-actions"><button type="button" class="a-btn sm" id="igAddPost">➕ إضافة كمنشور مميّز</button></div>';
+      ensureInstagramEmbedScript(function () {
+        if (window.instgrm) window.instgrm.Embeds.process();
+      });
+      document.getElementById("igAddPost").addEventListener("click", function () {
+        var caption = prompt("وصف مختصر لهذا المنشور (اختياري):", "") || "";
+        state.instagramPosts.push({ id: slugId("ig"), url: url, caption: caption });
+        saveInstagramPosts(); renderInstagramTable();
+        alert("تمت الإضافة إلى المنشورات المميزة ✓");
+      });
+    });
+  }
+
+  function exportInstagram() {
+    if (!state.instagramPosts.length) { alert("لا توجد منشورات انستغرام لتصديرها بعد."); return; }
+    var content =
+      "/**\n * منشورات انستغرام المميّزة — تم إنشاؤه من لوحة التحكم\n" +
+      " * ارفع هذا الملف ليحل محل js/instagram.js على الاستضافة.\n */\n" +
+      "let INSTAGRAM_POSTS = " + JSON.stringify(state.instagramPosts, null, 2) + ";\n";
+    downloadBlob("instagram.js", content, "application/javascript;charset=utf-8");
+  }
+
+  /* =========================================================
+     النشر المباشر على GitHub (بديل تلقائي عن التنزيل والرفع اليدوي)
+     ========================================================= */
+  function ghConfigured() {
+    return !!(state.github.owner && state.github.repo && state.github.token);
+  }
+  function ghEncodePath(path) {
+    return path.split("/").map(encodeURIComponent).join("/");
+  }
+  function ghFullPath(path) {
+    var base = (state.github.baseDir || "").replace(/^\/+|\/+$/g, "");
+    return base ? base + "/" + path : path;
+  }
+  function ghApiBase() {
+    return "https://api.github.com/repos/" + encodeURIComponent(state.github.owner) + "/" + encodeURIComponent(state.github.repo);
+  }
+  function ghHeaders() {
+    return {
+      Authorization: "Bearer " + state.github.token,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+    };
+  }
+  function utf8ToBase64(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  async function ghGetSha(path) {
+    var branch = state.github.branch || "main";
+    var res = await fetch(ghApiBase() + "/contents/" + ghEncodePath(ghFullPath(path)) + "?ref=" + encodeURIComponent(branch), { headers: ghHeaders() });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error("تعذّر قراءة " + path + " (HTTP " + res.status + ")");
+    var data = await res.json();
+    return data.sha;
+  }
+  async function ghPutFile(path, base64Content, message) {
+    var branch = state.github.branch || "main";
+    var sha = await ghGetSha(path);
+    var body = { message: message, content: base64Content, branch: branch };
+    if (sha) body.sha = sha;
+    var res = await fetch(ghApiBase() + "/contents/" + ghEncodePath(ghFullPath(path)), {
+      method: "PUT",
+      headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      var msg = "HTTP " + res.status;
+      try { var j = await res.json(); if (j.message) msg = j.message; } catch (e2) {}
+      throw new Error("فشل نشر " + path + ": " + msg);
+    }
+    return res.json();
+  }
+
+  async function ghApiJson(path, method, payload) {
+    var res = await fetch(ghApiBase() + path, {
+      method: method,
+      headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      var msg = "HTTP " + res.status;
+      try { var j = await res.json(); if (j.message) msg = j.message; } catch (e2) {}
+      throw new Error(msg);
+    }
+    return res.json();
+  }
+
+  /**
+   * ينشر عدة ملفات (نصية أو ثنائية كالفيديوهات والصور) في التزام واحد (commit)
+   * عبر Git Data API — على عكس ghPutFile (Contents API) المحدود بـ 1 ميجابايت
+   * للملف الواحد، هذا المسار يدعم ملفات أكبر بكثير (حتى ~100 ميجابايت) وهو
+   * سبب فشل نشر الفيديوهات سابقاً بصمت عند تجاوزها 1 ميجابايت.
+   * files: [{ path, content, isBase64 }]
+   */
+  async function ghCommitFiles(files, message) {
+    var branch = state.github.branch || "main";
+    var refData = await ghApiJson("/git/ref/" + ghEncodePath("heads/" + branch), "GET").catch(function (e) {
+      throw new Error("تعذّر قراءة الفرع \"" + branch + "\": " + e.message);
+    });
+    var headCommitSha = refData.object.sha;
+    var commitData = await ghApiJson("/git/commits/" + headCommitSha, "GET");
+    var baseTreeSha = commitData.tree.sha;
+
+    var entries = [];
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      var b64 = f.isBase64 ? f.content : utf8ToBase64(f.content);
+      var blob = await ghApiJson("/git/blobs", "POST", { content: b64, encoding: "base64" });
+      entries.push({ path: ghFullPath(f.path), mode: "100644", type: "blob", sha: blob.sha });
+    }
+
+    var newTree = await ghApiJson("/git/trees", "POST", { base_tree: baseTreeSha, tree: entries });
+    var newCommit = await ghApiJson("/git/commits", "POST", { message: message, tree: newTree.sha, parents: [headCommitSha] });
+    await fetch(ghApiBase() + "/git/refs/" + ghEncodePath("heads/" + branch), {
+      method: "PATCH",
+      headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+      body: JSON.stringify({ sha: newCommit.sha }),
+    }).then(function (res) {
+      if (!res.ok) throw new Error("فشل تحديث الفرع بعد النشر (HTTP " + res.status + ")");
+    });
+  }
+
+  function ghStatusNotice() {
+    var el = document.getElementById("ghStatusNotice");
+    if (!el) return;
+    if (ghConfigured()) {
+      el.className = "notice ok";
+      el.innerHTML = "✓ متصل بمستودع <b>" + state.github.owner + "/" + state.github.repo + "</b> (الفرع: " + (state.github.branch || "main") + "). أزرار \"🚀 نشر مباشر\" في كل تبويب جاهزة للعمل الآن.";
+    } else {
+      el.className = "notice";
+      el.textContent = "لسه ما اترابط بحساب GitHub — عبّي البيانات بالأسفل مرة واحدة، وبعدها أزرار \"🚀 نشر مباشر\" في باقي التبويبات هتشتغل مباشرة.";
+    }
+  }
+
+  function initGithubForm() {
+    document.getElementById("ghOwner").value = state.github.owner || "";
+    document.getElementById("ghRepo").value = state.github.repo || "";
+    document.getElementById("ghBranch").value = state.github.branch || "main";
+    document.getElementById("ghBaseDir").value = state.github.baseDir || "";
+    document.getElementById("ghToken").value = state.github.token || "";
+    ghStatusNotice();
+
+    document.getElementById("ghShowToken").addEventListener("click", function () {
+      var f = document.getElementById("ghToken");
+      var isPwd = f.type === "password";
+      f.type = isPwd ? "text" : "password";
+      this.textContent = isPwd ? "إخفاء" : "إظهار";
+    });
+
+    document.getElementById("githubForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      state.github = {
+        owner: document.getElementById("ghOwner").value.trim(),
+        repo: document.getElementById("ghRepo").value.trim(),
+        branch: document.getElementById("ghBranch").value.trim() || "main",
+        baseDir: document.getElementById("ghBaseDir").value.trim(),
+        token: document.getElementById("ghToken").value.trim(),
+      };
+      saveGithubSettings();
+      if (!ghConfigured()) { ghStatusNotice(); return; }
+
+      var notice = document.getElementById("ghStatusNotice");
+      notice.className = "notice";
+      notice.textContent = "جارٍ اختبار الاتصال...";
+      ghGetSha("js/videos.js").then(function () {
+        ghStatusNotice();
+        alert("تم الاتصال بنجاح ✓");
+      }).catch(function (err) {
+        notice.className = "notice danger";
+        notice.textContent = "تعذّر الاتصال: " + err.message + " — تأكد من اسم المستخدم/المستودع والصلاحيات الممنوحة للمفتاح.";
+      });
+    });
+
+    document.getElementById("ghDisconnectBtn").addEventListener("click", function () {
+      if (!confirm("سيتم حذف بيانات ربط GitHub (بما فيها المفتاح) من هذا المتصفح. متابعة؟")) return;
+      state.github = { owner: "", repo: "", branch: "main", baseDir: "", token: "" };
+      saveGithubSettings();
+      document.getElementById("githubForm").reset();
+      document.getElementById("ghBranch").value = "main";
+      ghStatusNotice();
+    });
+  }
+
+  function requireGithub() {
+    if (ghConfigured()) return true;
+    if (confirm("لسه ما اترابط بحساب GitHub. هل تريد الانتقال لتبويب \"النشر المباشر\" لربطه الآن؟")) {
+      goToPanel("publish");
+    }
+    return false;
+  }
+
+  function setBtnBusy(btn, busyText) {
+    btn.disabled = true;
+    btn.dataset.origText = btn.textContent;
+    btn.textContent = busyText;
+  }
+  function clearBtnBusy(btn) {
+    btn.disabled = false;
+    if (btn.dataset.origText) btn.textContent = btn.dataset.origText;
+  }
+
+  async function publishProjects(btn) {
+    if (!requireGithub()) return;
+    if (!state.projects.length) { alert("لا توجد مشاريع لنشرها بعد."); return; }
+    setBtnBusy(btn, "⏳ جارٍ التحضير...");
+    try {
+      var filesToCommit = [];
+      for (var p of state.projects) {
+        if (p._pendingCover) {
+          var cf = p.id + "-cover." + p._pendingCover.ext;
+          filesToCommit.push({ path: "images/projects/" + cf, content: p._pendingCover.dataUrl.split(",")[1], isBase64: true });
+          p.cover = "images/projects/" + cf;
+          delete p._pendingCover;
+        }
+        if (p._pendingGallery && p._pendingGallery.length) {
+          for (var gi = 0; gi < p._pendingGallery.length; gi++) {
+            var g = p._pendingGallery[gi];
+            var gf = p.id + "-g" + (gi + 1) + "." + g.ext;
+            filesToCommit.push({ path: "images/projects/" + gf, content: g.dataUrl.split(",")[1], isBase64: true });
+          }
+          delete p._pendingGallery;
+        }
+      }
+      var clean = state.projects.map(function (p) {
+        var c = Object.assign({}, p);
+        delete c._pendingCover; delete c._pendingGallery;
+        return c;
+      });
+      var content = "/**\n * بيانات المشاريع — تم إنشاؤه من لوحة التحكم\n */\n" + "let PROJECTS = " + JSON.stringify(clean, null, 2) + ";\n";
+      filesToCommit.push({ path: "js/projects.js", content: content, isBase64: false });
+
+      btn.textContent = filesToCommit.length > 1 ? "⏳ جارٍ رفع الصور ونشر البيانات..." : "⏳ جارٍ النشر...";
+      await ghCommitFiles(filesToCommit, "تحديث المشاريع من لوحة التحكم");
+
+      saveProjects();
+      renderProjectsTable();
+      alert("تم نشر المشاريع على الموقع مباشرة ✓ (سيظهر التحديث خلال دقيقة أو دقيقتين)");
+    } catch (err) {
+      alert("حدث خطأ أثناء النشر: " + err.message);
+    } finally {
+      clearBtnBusy(btn);
+    }
+  }
+
+  async function publishVideos(btn) {
+    if (!requireGithub()) return;
+    if (!state.videos.length) { alert("لا توجد فيديوهات لنشرها بعد."); return; }
+    setBtnBusy(btn, "⏳ جارٍ التحضير...");
+    try {
+      var filesToCommit = [];
+      for (var v of state.videos) {
+        if (v._pendingVideo) {
+          var filename = v.id + "." + v._pendingVideo.ext;
+          filesToCommit.push({ path: "videos/" + filename, content: v._pendingVideo.dataUrl.split(",")[1], isBase64: true });
+          v.url = "videos/" + filename;
+          delete v._pendingVideo;
+        }
+      }
+      var clean = state.videos.map(function (v) {
+        return { id: v.id, type: v.type, url: v.url, title: v.title, category: v.category };
+      });
+      var content = "/**\n * بيانات الفيديوهات — تم إنشاؤه من لوحة التحكم\n */\n" + "let VIDEOS = " + JSON.stringify(clean, null, 2) + ";\n";
+      filesToCommit.push({ path: "js/videos.js", content: content, isBase64: false });
+
+      btn.textContent = filesToCommit.length > 1 ? "⏳ جارٍ رفع الفيديو ونشر البيانات..." : "⏳ جارٍ النشر...";
+      await ghCommitFiles(filesToCommit, "تحديث الفيديوهات من لوحة التحكم");
+
+      saveVideos();
+      renderVideosTable();
+      alert("تم نشر الفيديو على الموقع مباشرة ✓ (سيظهر في صفحة الفيديوهات خلال دقيقة أو دقيقتين)");
+    } catch (err) {
+      alert("حدث خطأ أثناء النشر: " + err.message);
+    } finally {
+      clearBtnBusy(btn);
+    }
+  }
+
+  async function publishInstagram(btn) {
+    if (!requireGithub()) return;
+    if (!state.instagramPosts.length) { alert("لا توجد منشورات انستغرام لنشرها بعد."); return; }
+    setBtnBusy(btn, "⏳ جارٍ النشر...");
+    try {
+      var content = "/**\n * منشورات انستغرام المميّزة — تم إنشاؤه من لوحة التحكم\n */\n" + "let INSTAGRAM_POSTS = " + JSON.stringify(state.instagramPosts, null, 2) + ";\n";
+      await ghPutFile("js/instagram.js", utf8ToBase64(content), "تحديث منشورات انستغرام من لوحة التحكم");
+      alert("تم نشر منشورات انستغرام على الموقع مباشرة ✓");
+    } catch (err) {
+      alert("حدث خطأ أثناء النشر: " + err.message);
+    } finally {
+      clearBtnBusy(btn);
+    }
+  }
+
+  async function publishConfig(btn) {
+    if (!requireGithub()) return;
+    setBtnBusy(btn, "⏳ جارٍ النشر...");
+    try {
+      await ghPutFile("js/config.js", utf8ToBase64(buildConfigFileContent()), "تحديث بيانات الشركة من لوحة التحكم");
+      alert("تم نشر بيانات الشركة على الموقع مباشرة ✓");
+    } catch (err) {
+      alert("حدث خطأ أثناء النشر: " + err.message);
+    } finally {
+      clearBtnBusy(btn);
+    }
+  }
+
+  /* =========================================================
      بيانات الشركة
      ========================================================= */
   function fillCompanyForm() {
@@ -535,9 +1040,12 @@
     document.getElementById("cFacebook").value = s.facebook || "";
     document.getElementById("cInstagram").value = s.instagram || "";
     document.getElementById("cTiktok").value = s.tiktok || "";
+    document.getElementById("cYoutube").value = s.youtube || "";
+    document.getElementById("cSnapchat").value = s.snapchat || "";
     var mapsQuery = SITE_CONFIG.googleMapsQuery || "";
     document.getElementById("cMapsQuery").value = mapsQuery.startsWith("[") ? "" : mapsQuery;
     document.getElementById("cMaps").value = SITE_CONFIG.googleMapsEmbedUrl || "";
+    document.getElementById("cTickerAr").value = (SITE_CONFIG.tickerText && SITE_CONFIG.tickerText.ar) || "";
     updateMapPreview();
   }
 
@@ -560,8 +1068,7 @@
     document.getElementById("cMapsQuery").addEventListener("input", updateMapPreview);
     document.getElementById("cMaps").addEventListener("input", updateMapPreview);
 
-    document.getElementById("companyForm").addEventListener("submit", function (e) {
-      e.preventDefault();
+    function applyCompanyFormPatch() {
       var patch = {
         contact: {
           phone: document.getElementById("cPhone").value.trim(),
@@ -574,9 +1081,15 @@
           facebook: document.getElementById("cFacebook").value.trim(),
           instagram: document.getElementById("cInstagram").value.trim(),
           tiktok: document.getElementById("cTiktok").value.trim(),
+          youtube: document.getElementById("cYoutube").value.trim(),
+          snapchat: document.getElementById("cSnapchat").value.trim(),
         },
         googleMapsQuery: document.getElementById("cMapsQuery").value.trim(),
         googleMapsEmbedUrl: document.getElementById("cMaps").value.trim(),
+        tickerText: {
+          ar: document.getElementById("cTickerAr").value.trim(),
+          en: (SITE_CONFIG.tickerText && SITE_CONFIG.tickerText.en) || "",
+        },
       };
       state.configPatch = patch;
       saveConfigPatch();
@@ -584,17 +1097,27 @@
       Object.assign(SITE_CONFIG.social, patch.social);
       SITE_CONFIG.googleMapsQuery = patch.googleMapsQuery;
       SITE_CONFIG.googleMapsEmbedUrl = patch.googleMapsEmbedUrl;
+      SITE_CONFIG.tickerText = patch.tickerText;
+    }
+
+    document.getElementById("companyForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      applyCompanyFormPatch();
       var note = document.getElementById("companySavedNote");
       note.hidden = false;
       setTimeout(function () { note.hidden = true; }, 4000);
     });
 
     document.getElementById("exportConfigBtn").addEventListener("click", exportConfig);
+    document.getElementById("publishConfigBtn").addEventListener("click", function () {
+      applyCompanyFormPatch();
+      publishConfig(this);
+    });
   }
 
-  function exportConfig() {
+  function buildConfigFileContent() {
     var c = SITE_CONFIG;
-    var content =
+    return (
       "/**\n * ============================================================\n" +
       " *  دار الإتقان للمطابخ والديكورات — ملف الإعدادات المركزي\n" +
       " *  تم إنشاؤه من لوحة التحكم — ارفعه ليحل محل js/config.js\n" +
@@ -602,7 +1125,7 @@
       "const SITE_CONFIG = " + JSON.stringify({
         companyName: c.companyName, tagline: c.tagline, shortDescription: c.shortDescription, country: c.country,
         contact: c.contact, social: c.social, googleMapsQuery: c.googleMapsQuery, googleMapsEmbedUrl: c.googleMapsEmbedUrl,
-        whatsappDefaultMessage: c.whatsappDefaultMessage, nav: c.nav, adminPasscode: c.adminPasscode,
+        whatsappDefaultMessage: c.whatsappDefaultMessage, tickerText: c.tickerText, nav: c.nav, adminPasscode: c.adminPasscode,
       }, null, 2) + ";\n\n" +
       "function getWhatsAppLink(customMessage) {\n" +
       "  const number = SITE_CONFIG.contact.whatsapp.replace(/[^0-9]/g, \"\");\n" +
@@ -617,8 +1140,12 @@
       "    return `https://maps.google.com/maps?q=${encodeURIComponent(query.trim())}&output=embed`;\n" +
       "  }\n" +
       "  return \"\";\n" +
-      "}\n";
-    downloadBlob("config.js", content, "application/javascript;charset=utf-8");
+      "}\n"
+    );
+  }
+
+  function exportConfig() {
+    downloadBlob("config.js", buildConfigFileContent(), "application/javascript;charset=utf-8");
   }
 
   /* =========================================================
@@ -630,8 +1157,14 @@
     initProjectForm();
     initVideoForm();
     initFacebookImport();
+    initInstagramImport();
     initCompanyForm();
+    initGithubForm();
     document.getElementById("exportProjectsBtn").addEventListener("click", exportProjects);
     document.getElementById("exportVideosBtn").addEventListener("click", exportVideos);
+    document.getElementById("exportInstagramBtn").addEventListener("click", exportInstagram);
+    document.getElementById("publishProjectsBtn").addEventListener("click", function () { publishProjects(this); });
+    document.getElementById("publishVideosBtn").addEventListener("click", function () { publishVideos(this); });
+    document.getElementById("publishInstagramBtn").addEventListener("click", function () { publishInstagram(this); });
   });
 })();
