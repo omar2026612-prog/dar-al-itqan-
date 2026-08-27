@@ -15,25 +15,15 @@
      تحميل الحالة الحالية (من المسودّة المحفوظة أو من ملفات المصدر)
      ========================================================= */
   function loadProjects() {
-    try {
-      var raw = localStorage.getItem(LS_PROJECTS);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return JSON.parse(JSON.stringify(window.PROJECTS || []));
+    // دائماً نبدأ من البيانات المنشورة فعلياً (js/projects.js) — لا نعتمد على أي
+    // مسودة محلية قديمة، حتى تعرض لوحة التحكم نفس المحتوى الحقيقي على أي متصفح/جهاز.
+    return JSON.parse(JSON.stringify((typeof PROJECTS !== "undefined" && PROJECTS) || []));
   }
   function loadVideos() {
-    try {
-      var raw = localStorage.getItem(LS_VIDEOS);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return JSON.parse(JSON.stringify(window.VIDEOS || []));
+    return JSON.parse(JSON.stringify((typeof VIDEOS !== "undefined" && VIDEOS) || []));
   }
   function loadInstagramPosts() {
-    try {
-      var raw = localStorage.getItem(LS_INSTAGRAM);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return JSON.parse(JSON.stringify(window.INSTAGRAM_POSTS || []));
+    return JSON.parse(JSON.stringify((typeof INSTAGRAM_POSTS !== "undefined" && INSTAGRAM_POSTS) || []));
   }
   function loadGithubSettings() {
     try {
@@ -66,22 +56,18 @@
   };
 
   function saveProjects() {
-    localStorage.setItem(LS_PROJECTS, JSON.stringify(state.projects));
+    // لا حاجة للتخزين المحلي بعد الآن — العمل مباشرة على البيانات المنشورة،
+    // والنشر الفوري (🚀) هو ما يحفظ التغييرات فعلياً على GitHub.
   }
   // يحاول حفظ الفيديوهات في المتصفح؛ قد يفشل إن كان فيديو الملف المرفوع كبيراً
   // جداً على سعة التخزين المحلي (localStorage) — في هذه الحالة نتابع العمل
   // بالحالة الحالية في الذاكرة (كافية لإتمام "التصدير" في نفس الجلسة) ونحذّر المستخدم.
   function saveVideos() {
-    try {
-      localStorage.setItem(LS_VIDEOS, JSON.stringify(state.videos));
-      return true;
-    } catch (e) {
-      console.warn("saveVideos failed", e);
-      return false;
-    }
+    // لا حاجة للتخزين المحلي — النشر المباشر هو ما يحفظ التغييرات فعلياً.
+    return true;
   }
   function saveInstagramPosts() {
-    localStorage.setItem(LS_INSTAGRAM, JSON.stringify(state.instagramPosts));
+    // لا حاجة للتخزين المحلي — النشر المباشر هو ما يحفظ التغييرات فعلياً.
   }
   function saveConfigPatch() {
     localStorage.setItem(LS_CONFIG, JSON.stringify(state.configPatch));
@@ -137,7 +123,7 @@
     }
 
     function tryEnter() {
-      var code = normalizeDigits((window.SITE_CONFIG && SITE_CONFIG.adminPasscode) || FALLBACK_PASSCODE);
+      var code = normalizeDigits((typeof SITE_CONFIG !== "undefined" && SITE_CONFIG.adminPasscode) || FALLBACK_PASSCODE);
       var entered = normalizeDigits(pass.value);
       if (entered === code && entered.length > 0) {
         sessionStorage.setItem(SS_AUTH, "1");
@@ -556,9 +542,6 @@
       var record;
 
       if (state.videoMode === "file") {
-        // فيديو مرفوع من الجهاز: نستخدم رابط Base64 مباشرة كمعاينة فورية وحقيقية
-        // داخل هذا المتصفح، ونحتفظ بنفس البيانات في _pendingVideo لتنزيل الملف
-        // الفعلي عند "تصدير" الفيديوهات، مع مسار نهائي داخل videos/ للاستضافة.
         var pending = state.pendingVideoFile || (existing && existing._pendingVideo);
         var url = pending ? pending.dataUrl : (existing ? existing.url : null);
         if (!url) { alert("الرجاء اختيار ملف فيديو."); return; }
@@ -598,8 +581,6 @@
   function exportVideos() {
     if (!state.videos.length) { alert("لا توجد فيديوهات لتصديرها بعد."); return; }
 
-    // تنزيل ملفات الفيديو المرفوعة حديثاً بأسمائها الصحيحة، واستبدال الرابط
-    // المؤقت (Base64) في البيانات المصدَّرة بمسار دائم داخل videos/
     var hadFiles = false;
     state.videos.forEach(function (v) {
       if (v._pendingVideo) {
@@ -622,8 +603,6 @@
       "let VIDEOS = " + JSON.stringify(clean, null, 2) + ";\n";
     downloadBlob("videos.js", content, "application/javascript;charset=utf-8");
 
-    // بعد التصدير، ننظّف الروابط المؤقتة الثقيلة (Base64) من الحالة المحفوظة محلياً
-    // لتفادي امتلاء مساحة التخزين المؤقت للمتصفح، مع إبقاء بيانات الفيديو كما هي.
     state.videos.forEach(function (v) { delete v._pendingVideo; });
     saveVideos();
   }
@@ -786,13 +765,6 @@
     return res.json();
   }
 
-  /**
-   * ينشر عدة ملفات (نصية أو ثنائية كالفيديوهات والصور) في التزام واحد (commit)
-   * عبر Git Data API — على عكس ghPutFile (Contents API) المحدود بـ 1 ميجابايت
-   * للملف الواحد، هذا المسار يدعم ملفات أكبر بكثير (حتى ~100 ميجابايت) وهو
-   * سبب فشل نشر الفيديوهات سابقاً بصمت عند تجاوزها 1 ميجابايت.
-   * files: [{ path, content, isBase64 }]
-   */
   async function ghCommitFiles(files, message) {
     var branch = state.github.branch || "main";
     var refData = await ghApiJson("/git/ref/" + ghEncodePath("heads/" + branch), "GET").catch(function (e) {
