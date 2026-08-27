@@ -189,7 +189,7 @@
     if (wa) wa.href = getWhatsAppLink();
 
     const grid = document.getElementById("homePreviewGrid");
-    if (grid && window.PROJECTS) {
+    if (grid && typeof PROJECTS !== "undefined" && PROJECTS) {
       const lang = document.documentElement.lang === "en" ? "en" : "ar";
       grid.innerHTML = PROJECTS.slice(0, 6)
         .map(

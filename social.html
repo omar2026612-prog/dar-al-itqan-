@@ -108,7 +108,7 @@
 
     const igGrid = document.getElementById("igGrid");
     const igEmpty = document.getElementById("igEmpty");
-    const posts = (window.INSTAGRAM_POSTS || []);
+    const posts = (typeof INSTAGRAM_POSTS !== "undefined" ? INSTAGRAM_POSTS : []);
     if (posts.length) {
       igGrid.hidden = false;
       igGrid.innerHTML = posts.map((p) => `

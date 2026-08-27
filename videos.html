@@ -128,7 +128,7 @@
     const grid = document.getElementById("videoGrid");
     const empty = document.getElementById("videoEmpty");
     const bar = document.getElementById("videoFilterBar");
-    const list = (window.VIDEOS || []);
+    const list = (VIDEOS || []);
 
     if (!list.length) {
       grid.hidden = true;
