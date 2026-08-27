@@ -3,9 +3,9 @@
  */
 let VIDEOS = [
   {
-    "id": "video-mtap9mcj29",
+    "id": "video-mtbfnbug92",
     "type": "file",
-    "url": "videos/video-mtap9mcj29.mp4",
+    "url": "videos/video-mtbfnbug92.mp4",
     "title": {
       "ar": "دار الاتقان",
       "en": "دار الاتقان"
