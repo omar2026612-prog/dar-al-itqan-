@@ -36,10 +36,10 @@ const SITE_CONFIG = {
     }
   },
   "social": {
-    "facebook": "https://www.facebook.com/itqank",
-    "instagram": "https://www.instagram.com/itqank",
-    "tiktok": "https://www.tiktok.com/@itqank",
-    "youtube": "https://youtube.com/@itqank",
+    "facebook": "https://l.instagram.com/?u=https%3A%2F%2Fwww.facebook.com%2Fshare%2F18DTXv8dFM&e=AUANg_8gt78D2mVf_NZgEZ-avuNPSZnOW_RkVHpb-dgqFovjiTLhtBITfNmWFn71v2ZgpMLFjP3ubTKqJpXOboWQOkGPzdrOQtVcuMW3GDkFSKCj7gThP4kK49Vu4YJFjvztYmjCWi-LCamg97Mz8w",
+    "instagram": "https://l.instagram.com/?u=https%3A%2F%2Fwww.instagram.com%2Fitqank&e=AUCvdFhUPmyk79LTsAMlYcqLd0iLvUYsQIAXWVxyIzow7XTnvK-JGMsqVjG2jj0iN1bFrsksJJ6o-9yzcNNTYUgVHgTP6NRE8Svtl3Oe2JitaqXOPx53Gh76bSKx-tzY61SYIJc9mO61pmCk5ZT9xQ",
+    "tiktok": "https://l.instagram.com/?u=https%3A%2F%2Fwww.tiktok.com%2F%40itqank&e=AUBCFNEQAf5nWsu24fOq6f6LonZ2tG_nCaodkoKvDKasG9OkwmP8Eu4fGRO10N14ip8gD6custTS-bxG1I27X9WhLkJjZPv2gAfXWwghcFHOfpimIW5YCjWLOMgvo9_1uhokAcpP_Uk4SJcrF31CCA",
+    "youtube": "https://l.instagram.com/?u=https%3A%2F%2Fyoutube.com%2F%40itqank%3Fsi%3DqwjWvxCeb1J9wnT-&e=AUD1fkHcgXzPnq0waIEJ45j67XeI7rotfc8k5D5kkj9JdIBgwZduTzwyK1Jt45HjMfcpG6yKIt-WyOKRPZkwawC3XdH9yukrBpE08HpOd9-Ea_m3B4luhVSvAzDkOG5b_r53LDnvWHGVOOSLvFwMyw",
     "snapchat": "https://www.snapchat.com/add/itqank"
   },
   "googleMapsQuery": "",
