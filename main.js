@@ -9,6 +9,23 @@
 
   const t = (obj) => (obj && typeof obj === "object" ? obj[LANG] || obj.ar : obj);
 
+  /* ---------- الشريط المتحرك ---------- */
+  function renderTicker() {
+    const el = document.getElementById("site-header");
+    if (!el) return;
+    const text = t(SITE_CONFIG.tickerText);
+    if (!text || !text.trim()) return;
+    const sep = "&nbsp;&nbsp;•&nbsp;&nbsp;";
+    const item = text.trim();
+    // نكرر النص عدة مرات في مسار واحد طويل لضمان تعبئة الشاشة وحلقة تمرير سلسة بلا فراغات
+    const track = Array(8).fill(item).join(sep);
+    const wrap = document.createElement("div");
+    wrap.className = "site-ticker";
+    wrap.innerHTML = `<div class="ticker-track"><span>${track}${sep}</span><span aria-hidden="true">${track}${sep}</span></div>`;
+    el.insertAdjacentElement("beforebegin", wrap);
+    document.body.classList.add("has-ticker");
+  }
+
   /* ---------- Header ---------- */
   function renderHeader() {
     const el = document.getElementById("site-header");
@@ -135,6 +152,20 @@
     a.rel = "noopener";
     a.setAttribute("aria-label", "تواصل عبر واتساب");
     a.innerHTML = icon("wa").replace("16", "30");
+    document.body.appendChild(a);
+  }
+
+  /* ---------- أيقونة عائمة: وسائل التواصل الاجتماعي (فيسبوك/انستغرام) ---------- */
+  function renderSocialFloat() {
+    if (document.getElementById("socialFloat")) return;
+    if (document.body.dataset.page === "social") return; // لا داعي لها في نفس الصفحة
+    const a = document.createElement("a");
+    a.id = "socialFloat";
+    a.className = "social-float";
+    a.href = "social.html";
+    a.setAttribute("aria-label", LANG === "ar" ? "آخر منشوراتنا على فيسبوك وانستغرام" : "Latest posts on Facebook & Instagram");
+    a.title = LANG === "ar" ? "آخر منشوراتنا على فيسبوك وانستغرام" : "Latest posts on Facebook & Instagram";
+    a.innerHTML = icon("ig").replace(/16/g, "26");
     document.body.appendChild(a);
   }
 
@@ -267,9 +298,11 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    renderTicker();
     renderHeader();
     renderFooter();
     renderWaFloat();
+    renderSocialFloat();
     initReveal();
     initFilters();
     initLightbox();

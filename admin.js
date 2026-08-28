@@ -15,24 +15,14 @@
      تحميل الحالة الحالية (من المسودّة المحفوظة أو من ملفات المصدر)
      ========================================================= */
   function loadProjects() {
-    try {
-      var raw = localStorage.getItem(LS_PROJECTS);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
+    // دائماً نبدأ من البيانات المنشورة فعلياً (js/projects.js) — لا نعتمد على أي
+    // مسودة محلية قديمة، حتى تعرض لوحة التحكم نفس المحتوى الحقيقي على أي متصفح/جهاز.
     return JSON.parse(JSON.stringify((typeof PROJECTS !== "undefined" && PROJECTS) || []));
   }
   function loadVideos() {
-    try {
-      var raw = localStorage.getItem(LS_VIDEOS);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
     return JSON.parse(JSON.stringify((typeof VIDEOS !== "undefined" && VIDEOS) || []));
   }
   function loadInstagramPosts() {
-    try {
-      var raw = localStorage.getItem(LS_INSTAGRAM);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
     return JSON.parse(JSON.stringify((typeof INSTAGRAM_POSTS !== "undefined" && INSTAGRAM_POSTS) || []));
   }
   function loadGithubSettings() {
@@ -66,44 +56,18 @@
   };
 
   function saveProjects() {
-    // مهم: لا نخزّن صور الغلاف/المعرض (base64 كبيرة الحجم) داخل localStorage —
-    // نخزّن فقط بيانات المشروع النصية. هذا يمنع فشل الحفظ الصامت عند وجود عدة
-    // صور كبيرة (تجاوز سعة التخزين المحلي). الصور الفعلية تبقى في الذاكرة
-    // (state.projects) طوال الجلسة، وهذا كافٍ للنشر المباشر فوراً بعد الإضافة.
-    try {
-      var forStorage = state.projects.map(function (p) {
-        var copy = {};
-        for (var k in p) {
-          if (k !== "_pendingCover" && k !== "_pendingGallery") copy[k] = p[k];
-        }
-        return copy;
-      });
-      localStorage.setItem(LS_PROJECTS, JSON.stringify(forStorage));
-    } catch (e) {
-      console.warn("saveProjects failed", e);
-    }
+    // لا حاجة للتخزين المحلي بعد الآن — العمل مباشرة على البيانات المنشورة،
+    // والنشر الفوري (🚀) هو ما يحفظ التغييرات فعلياً على GitHub.
   }
   // يحاول حفظ الفيديوهات في المتصفح؛ قد يفشل إن كان فيديو الملف المرفوع كبيراً
   // جداً على سعة التخزين المحلي (localStorage) — في هذه الحالة نتابع العمل
   // بالحالة الحالية في الذاكرة (كافية لإتمام "التصدير" في نفس الجلسة) ونحذّر المستخدم.
   function saveVideos() {
-    try {
-      var forStorage = state.videos.map(function (v) {
-        var copy = {};
-        for (var k in v) {
-          if (k !== "_pendingVideo") copy[k] = v[k];
-        }
-        return copy;
-      });
-      localStorage.setItem(LS_VIDEOS, JSON.stringify(forStorage));
-      return true;
-    } catch (e) {
-      console.warn("saveVideos failed", e);
-      return false;
-    }
+    // لا حاجة للتخزين المحلي — النشر المباشر هو ما يحفظ التغييرات فعلياً.
+    return true;
   }
   function saveInstagramPosts() {
-    localStorage.setItem(LS_INSTAGRAM, JSON.stringify(state.instagramPosts));
+    // لا حاجة للتخزين المحلي — النشر المباشر هو ما يحفظ التغييرات فعلياً.
   }
   function saveConfigPatch() {
     localStorage.setItem(LS_CONFIG, JSON.stringify(state.configPatch));
