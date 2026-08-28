@@ -27,7 +27,7 @@ const SITE_CONFIG = {
     "whatsapp": "96893966645",
     "email": "[COMPANY_EMAIL]",
     "address": {
-      "ar": "شارع مويلح، طريق الصناعية (قبل محطة نفط عُمان، باتجاه مركز شرطة صحار)",
+      "ar": "[COMPANY_ADDRESS]",
       "en": "[COMPANY_ADDRESS_EN]"
     },
     "workingHours": {
@@ -42,7 +42,7 @@ const SITE_CONFIG = {
     "youtube": "https://youtube.com/@itqank",
     "snapchat": "https://www.snapchat.com/add/itqank"
   },
-  "googleMapsQuery": "شارع مويلح، طريق الصناعية (قبل محطة نفط عُمان، باتجاه مركز شرطة صحار)",
+  "googleMapsQuery": "",
   "googleMapsEmbedUrl": "",
   "whatsappDefaultMessage": {
     "ar": "السلام عليكم، أرغب في الاستفسار عن تصميم وتنفيذ مطبخ/ديكور.",
