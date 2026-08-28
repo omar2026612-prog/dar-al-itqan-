@@ -47,5 +47,27 @@ let PROJECTS = [
       "ar": "",
       "en": ""
     }
+  },
+  {
+    "id": "kitchens-mtcwzbz75",
+    "category": "kitchens",
+    "title": {
+      "ar": "مطبخ",
+      "en": "مطبخ"
+    },
+    "location": {
+      "ar": "معرض دار الإتقان",
+      "en": "Dar Al Itqan Showroom"
+    },
+    "cover": "images/projects/kitchens-mtcwzbz75-cover.jpg",
+    "gallery": [
+      "images/projects/kitchens-mtcwzbz75-g1.jpg",
+      "images/projects/kitchens-mtcwzbz75-g2.jpg",
+      "images/projects/kitchens-mtcwzbz75-g3.jpg"
+    ],
+    "description": {
+      "ar": "",
+      "en": ""
+    }
   }
 ];
