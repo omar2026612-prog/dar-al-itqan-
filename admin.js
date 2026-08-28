@@ -280,6 +280,7 @@
         if (!confirm("حذف هذا المشروع؟")) return;
         state.projects.splice(+btn.dataset.delProject, 1);
         saveProjects(); renderProjectsTable();
+        alert("تم الحذف مؤقتاً هنا فقط. اضغط الآن زر \"🚀 نشر مباشر على الموقع\" فوق الجدول حتى يُحذف فعلياً من الموقع — وإلا سيعود للظهور عند إعادة فتح لوحة التحكم.");
       });
     });
   }
@@ -393,6 +394,7 @@
       saveProjects();
       renderProjectsTable();
       document.getElementById("projectForm").hidden = true;
+      alert("تم الحفظ هنا فقط. اضغط الآن \"🚀 نشر مباشر على الموقع\" حتى يظهر التغيير فعلياً لكل الزوار.");
     });
   }
 
@@ -461,6 +463,7 @@
         if (!confirm("حذف هذا الفيديو؟")) return;
         state.videos.splice(+btn.dataset.delVideo, 1);
         saveVideos(); renderVideosTable();
+        alert("تم الحذف مؤقتاً هنا فقط. اضغط الآن زر \"🚀 نشر مباشر على الموقع\" فوق الجدول حتى يُحذف فعلياً من الموقع — وإلا سيعود للظهور عند إعادة فتح لوحة التحكم.");
       });
     });
   }
@@ -577,6 +580,8 @@
       document.getElementById("videoForm").hidden = true;
       if (!saved) {
         alert("تمت الإضافة ويمكنك تنزيلها الآن، لكن الفيديو كبير جداً على مساحة التخزين المؤقت لهذا المتصفح — لن يبقى محفوظاً هنا بعد إغلاق الصفحة، فتأكد من تنزيل ملفات الفيديوهات الآن قبل إغلاق لوحة التحكم.");
+      } else {
+        alert("تم الحفظ هنا فقط. اضغط الآن \"🚀 نشر مباشر على الموقع\" حتى يظهر التغيير فعلياً لكل الزوار.");
       }
     });
   }
@@ -981,7 +986,18 @@
     if (!requireGithub()) return;
     setBtnBusy(btn, "⏳ جارٍ النشر...");
     try {
-      await ghPutFile("js/config.js", utf8ToBase64(buildConfigFileContent()), "تحديث بيانات الشركة من لوحة التحكم");
+      if (state.pendingBgImage) {
+        var bgPath = "images/branding/site-bg." + state.pendingBgImage.ext;
+        SITE_CONFIG.siteBackgroundImage = bgPath;
+        btn.textContent = "⏳ جارٍ رفع صورة الخلفية ونشر البيانات...";
+        await ghCommitFiles([
+          { path: bgPath, content: state.pendingBgImage.dataUrl.split(",")[1], isBase64: true },
+          { path: "js/config.js", content: buildConfigFileContent(), isBase64: false },
+        ], "تحديث بيانات الشركة وصورة الخلفية من لوحة التحكم");
+        state.pendingBgImage = null;
+      } else {
+        await ghPutFile("js/config.js", utf8ToBase64(buildConfigFileContent()), "تحديث بيانات الشركة من لوحة التحكم");
+      }
       alert("تم نشر بيانات الشركة على الموقع مباشرة ✓");
     } catch (err) {
       alert("حدث خطأ أثناء النشر: " + err.message);
@@ -1031,6 +1047,19 @@
   function initCompanyForm() {
     document.getElementById("cMapsQuery").addEventListener("input", updateMapPreview);
     document.getElementById("cMaps").addEventListener("input", updateMapPreview);
+
+    state.pendingBgImage = null; // {dataUrl, ext}
+    if (SITE_CONFIG.siteBackgroundImage && SITE_CONFIG.siteBackgroundImage.indexOf("[") !== 0 && SITE_CONFIG.siteBackgroundImage.trim()) {
+      document.getElementById("cBgImagePreview").innerHTML = '<div class="a-thumb-item"><img src="' + SITE_CONFIG.siteBackgroundImage + '" /></div>';
+    }
+    document.getElementById("cBgImageFile").addEventListener("change", function (e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      fileToDataUrl(file).then(function (dataUrl) {
+        state.pendingBgImage = { dataUrl: dataUrl, ext: extFromFile(file) };
+        document.getElementById("cBgImagePreview").innerHTML = '<div class="a-thumb-item"><img src="' + dataUrl + '" /></div>';
+      });
+    });
 
     function applyCompanyFormPatch() {
       var patch = {
@@ -1089,6 +1118,7 @@
       "const SITE_CONFIG = " + JSON.stringify({
         companyName: c.companyName, tagline: c.tagline, shortDescription: c.shortDescription, country: c.country,
         contact: c.contact, social: c.social, googleMapsQuery: c.googleMapsQuery, googleMapsEmbedUrl: c.googleMapsEmbedUrl,
+        siteBackgroundImage: c.siteBackgroundImage || "",
         whatsappDefaultMessage: c.whatsappDefaultMessage, tickerText: c.tickerText, nav: c.nav, adminPasscode: c.adminPasscode,
       }, null, 2) + ";\n\n" +
       "function getWhatsAppLink(customMessage) {\n" +

@@ -44,6 +44,29 @@ p{margin:0;}
 button{font-family:inherit;cursor:pointer;}
 :focus-visible{outline:2px solid var(--bronze);outline-offset:3px;}
 
+/* ---------- صورة خلفية عامة للموقع (اختيارية، تُضبط من لوحة التحكم) ---------- */
+/* تُطبَّق عبر إضافة كلاس has-bg-image على body من main.js عندما تكون
+   SITE_CONFIG.siteBackgroundImage معرَّفة. تغطي كامل الصفحة من الأعلى للأسفل
+   وتبقى ثابتة أثناء التمرير، مع طبقة شفافة فوقها لضمان وضوح النصوص. */
+body.has-bg-image{
+  background-repeat:no-repeat;
+  background-position:center top;
+  background-size:cover;
+  background-attachment:fixed;
+}
+body.has-bg-image::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  background:rgba(250,247,240,.9);
+  pointer-events:none;
+}
+body.has-bg-image > *{
+  position:relative;
+  z-index:1;
+}
+
 .container{max-width:var(--container);margin-inline:auto;padding-inline:24px;}
 @media(min-width:768px){.container{padding-inline:40px;}}
 
@@ -102,6 +125,32 @@ h3.h-sub{font-size:clamp(20px,2.4vw,26px);line-height:1.4;}
 .btn--wa:hover{background:#2fe375;}
 
 /* ---------- Header ---------- */
+/* ---------- الشريط المتحرك (Ticker) ---------- */
+.site-ticker{
+  position:fixed;inset-inline:0;top:0;z-index:101;height:34px;
+  background:linear-gradient(90deg,var(--charcoal),#2a2620,var(--charcoal));
+  border-bottom:1px solid rgba(176,134,82,.35);
+  display:flex;align-items:center;overflow:hidden;
+}
+.ticker-track{display:flex;white-space:nowrap;animation:ticker-scroll 40s linear infinite;will-change:transform;}
+.ticker-track span{
+  padding-inline-end:0;font-size:12.5px;letter-spacing:.3px;color:var(--bronze-light);
+  font-weight:500;
+}
+@media (hover: hover){
+  .site-ticker:hover .ticker-track{animation-play-state:paused;}
+}
+@keyframes ticker-scroll{
+  from{transform:translateX(0);}
+  to{transform:translateX(-50%);}
+}
+body.has-ticker .site-header{top:34px;}
+@media(max-width:600px){
+  .site-ticker{height:30px;}
+  .ticker-track span{font-size:11px;}
+  body.has-ticker .site-header{top:30px;}
+}
+
 .site-header{
   position:fixed;inset-inline:0;top:0;z-index:100;
   padding:18px 0;
@@ -301,6 +350,28 @@ h3.h-sub{font-size:clamp(20px,2.4vw,26px);line-height:1.4;}
 }
 .wa-float:hover{transform:scale(1.08);}
 .wa-float svg{width:30px;height:30px;}
+
+/* ---------- Social hub float (Facebook/Instagram) ---------- */
+.social-float{
+  position:fixed;bottom:92px;inset-inline-end:26px;z-index:90;
+  width:50px;height:50px;border-radius:50%;color:#fff;
+  background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(0,0,0,.28);
+  transition:transform .3s var(--ease);
+}
+.social-float:hover{transform:scale(1.08);}
+
+/* ---------- أيقونات عائمة إضافية: فيسبوك / يوتيوب / سناب شات ---------- */
+.extra-float{
+  position:fixed;inset-inline-end:28px;z-index:90;
+  width:48px;height:48px;border-radius:50%;color:#fff;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(0,0,0,.26);
+  transition:transform .3s var(--ease);
+}
+.extra-float:hover{transform:scale(1.08);}
+.fb-float{background:#1877F2;}
+.yt-float{background:#FF0000;}
+.snap-float{background:#FFFC00;color:#000;}
 
 /* ---------- 404 ---------- */
 .error-page{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:var(--charcoal);color:var(--ivory);}
