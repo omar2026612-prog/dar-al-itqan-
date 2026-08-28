@@ -61,15 +61,5 @@ let VIDEOS = [
       "en": "لا تشتري من دار الإتقان| سلطنة عمان | شوف الفيديو 👇 #مطابخ #اكسبلور #رخام #kitchen #ديكورات #مطبخ"
     },
     "category": "promo"
-  },
-  {
-    "id": "video-mtbsg0k149",
-    "type": "file",
-    "url": "videos/video-mtbsg0k149.mp4",
-    "title": {
-      "ar": "دار الاتقان",
-      "en": "دار الاتقان"
-    },
-    "category": "promo"
   }
 ];
