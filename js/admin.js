@@ -280,6 +280,7 @@
         if (!confirm("حذف هذا المشروع؟")) return;
         state.projects.splice(+btn.dataset.delProject, 1);
         saveProjects(); renderProjectsTable();
+        alert("تم الحذف مؤقتاً هنا فقط. اضغط الآن زر \"🚀 نشر مباشر على الموقع\" فوق الجدول حتى يُحذف فعلياً من الموقع — وإلا سيعود للظهور عند إعادة فتح لوحة التحكم.");
       });
     });
   }
@@ -393,6 +394,7 @@
       saveProjects();
       renderProjectsTable();
       document.getElementById("projectForm").hidden = true;
+      alert("تم الحفظ هنا فقط. اضغط الآن \"🚀 نشر مباشر على الموقع\" حتى يظهر التغيير فعلياً لكل الزوار.");
     });
   }
 
@@ -461,6 +463,7 @@
         if (!confirm("حذف هذا الفيديو؟")) return;
         state.videos.splice(+btn.dataset.delVideo, 1);
         saveVideos(); renderVideosTable();
+        alert("تم الحذف مؤقتاً هنا فقط. اضغط الآن زر \"🚀 نشر مباشر على الموقع\" فوق الجدول حتى يُحذف فعلياً من الموقع — وإلا سيعود للظهور عند إعادة فتح لوحة التحكم.");
       });
     });
   }
@@ -542,6 +545,9 @@
       var record;
 
       if (state.videoMode === "file") {
+        // فيديو مرفوع من الجهاز: نستخدم رابط Base64 مباشرة كمعاينة فورية وحقيقية
+        // داخل هذا المتصفح، ونحتفظ بنفس البيانات في _pendingVideo لتنزيل الملف
+        // الفعلي عند "تصدير" الفيديوهات، مع مسار نهائي داخل videos/ للاستضافة.
         var pending = state.pendingVideoFile || (existing && existing._pendingVideo);
         var url = pending ? pending.dataUrl : (existing ? existing.url : null);
         if (!url) { alert("الرجاء اختيار ملف فيديو."); return; }
@@ -574,6 +580,8 @@
       document.getElementById("videoForm").hidden = true;
       if (!saved) {
         alert("تمت الإضافة ويمكنك تنزيلها الآن، لكن الفيديو كبير جداً على مساحة التخزين المؤقت لهذا المتصفح — لن يبقى محفوظاً هنا بعد إغلاق الصفحة، فتأكد من تنزيل ملفات الفيديوهات الآن قبل إغلاق لوحة التحكم.");
+      } else {
+        alert("تم الحفظ هنا فقط. اضغط الآن \"🚀 نشر مباشر على الموقع\" حتى يظهر التغيير فعلياً لكل الزوار.");
       }
     });
   }
@@ -581,6 +589,8 @@
   function exportVideos() {
     if (!state.videos.length) { alert("لا توجد فيديوهات لتصديرها بعد."); return; }
 
+    // تنزيل ملفات الفيديو المرفوعة حديثاً بأسمائها الصحيحة، واستبدال الرابط
+    // المؤقت (Base64) في البيانات المصدَّرة بمسار دائم داخل videos/
     var hadFiles = false;
     state.videos.forEach(function (v) {
       if (v._pendingVideo) {
@@ -603,6 +613,8 @@
       "let VIDEOS = " + JSON.stringify(clean, null, 2) + ";\n";
     downloadBlob("videos.js", content, "application/javascript;charset=utf-8");
 
+    // بعد التصدير، ننظّف الروابط المؤقتة الثقيلة (Base64) من الحالة المحفوظة محلياً
+    // لتفادي امتلاء مساحة التخزين المؤقت للمتصفح، مع إبقاء بيانات الفيديو كما هي.
     state.videos.forEach(function (v) { delete v._pendingVideo; });
     saveVideos();
   }
@@ -765,6 +777,13 @@
     return res.json();
   }
 
+  /**
+   * ينشر عدة ملفات (نصية أو ثنائية كالفيديوهات والصور) في التزام واحد (commit)
+   * عبر Git Data API — على عكس ghPutFile (Contents API) المحدود بـ 1 ميجابايت
+   * للملف الواحد، هذا المسار يدعم ملفات أكبر بكثير (حتى ~100 ميجابايت) وهو
+   * سبب فشل نشر الفيديوهات سابقاً بصمت عند تجاوزها 1 ميجابايت.
+   * files: [{ path, content, isBase64 }]
+   */
   async function ghCommitFiles(files, message) {
     var branch = state.github.branch || "main";
     var refData = await ghApiJson("/git/ref/" + ghEncodePath("heads/" + branch), "GET").catch(function (e) {
