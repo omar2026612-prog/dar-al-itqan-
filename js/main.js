@@ -9,6 +9,14 @@
 
   const t = (obj) => (obj && typeof obj === "object" ? obj[LANG] || obj.ar : obj);
 
+  /* ---------- صورة خلفية الموقع العامة (إن وُجدت) ---------- */
+  function applySiteBackground() {
+    var bg = SITE_CONFIG.siteBackgroundImage;
+    if (!bg || bg.indexOf("[") === 0) return;
+    document.body.style.backgroundImage = "url('" + bg + "')";
+    document.body.classList.add("has-bg-image");
+  }
+
   /* ---------- الشريط المتحرك ---------- */
   function renderTicker() {
     const el = document.getElementById("site-header");
@@ -137,6 +145,8 @@
       fb: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12z"/></svg>',
       ig: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3.1 0 4.1.1 1.1 0 1.8.2 2.5.5.7.3 1.2.6 1.7 1.1.5.5.9 1 1.1 1.7.3.7.5 1.4.5 2.5.1 1 .1 1.4.1 4.1s0 3.1-.1 4.1c0 1.1-.2 1.8-.5 2.5-.3.7-.6 1.2-1.1 1.7-.5.5-1 .9-1.7 1.1-.7.3-1.4.5-2.5.5-1 .1-1.4.1-4.1.1s-3.1 0-4.1-.1c-1.1 0-1.8-.2-2.5-.5-.7-.3-1.2-.6-1.7-1.1-.5-.5-.9-1-1.1-1.7-.3-.7-.5-1.4-.5-2.5C2 15.1 2 14.7 2 12s0-3.1.1-4.1c0-1.1.2-1.8.5-2.5.3-.7.6-1.2 1.1-1.7.5-.5 1-.9 1.7-1.1.7-.3 1.4-.5 2.5-.5C8.9 2 9.3 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.4 6.4a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0z"/></svg>',
       wa: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18.1a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.1 8.1 0 1 1 12 20.1zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.4.2-.4c0-.2 0-.3 0-.5-.1-.1-.5-1.2-.6-1.7-.2-.4-.3-.4-.5-.4h-.4c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.2s1 2.6 1.1 2.7c.1.2 1.9 3 4.7 4.1.7.3 1.2.4 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.2-.3-.2-.5-.3z"/></svg>',
+      yt: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.5-.4-5.2c-.3-1-1-1.7-2-2C18.9 4.4 12 4.4 12 4.4s-6.9 0-8.6.4c-1 .3-1.7 1-2 2C1 8.5 1 12 1 12s0 3.5.4 5.2c.3 1 1 1.7 2 2 1.7.4 8.6.4 8.6.4s6.9 0 8.6-.4c1-.3 1.7-1 2-2 .4-1.7.4-5.2.4-5.2zM9.8 15.5V8.5l6 3.5-6 3.5z"/></svg>',
+      snap: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c2.9 0 4.3 2.2 4.4 4.7.1 1.2 0 2.3-.1 3 .5.1 1-.2 1.3-.5.3-.2.7-.2 1 0 .3.2.4.6.2 1-.3.6-1 1.2-2 1.6.1.3.4 1 1.2 1.6.7.5 1.6.8 2.6 1 .3 0 .5.3.5.6 0 .4-.3.6-.6.7-.5.2-1.2.4-1.7.5-.1.2-.2.6-.3.9-.1.3-.3.5-.6.5-.5 0-.9-.1-1.4-.1-.5 0-.9.2-1.4.6-.6.5-1.3 1.1-2.6 1.1s-2-.6-2.6-1.1c-.5-.4-.9-.6-1.4-.6-.5 0-.9.1-1.4.1-.3 0-.5-.2-.6-.5-.1-.3-.2-.7-.3-.9-.5-.1-1.2-.3-1.7-.5-.3-.1-.6-.3-.6-.7 0-.3.2-.6.5-.6 1-.2 1.9-.5 2.6-1 .8-.6 1.1-1.3 1.2-1.6-1-.4-1.7-1-2-1.6-.2-.4-.1-.8.2-1 .3-.2.7-.2 1 0 .3.3.8.6 1.3.5-.1-.7-.2-1.8-.1-3 .1-2.5 1.5-4.7 4.4-4.7z"/></svg>',
     };
     return icons[name] || "";
   }
@@ -169,7 +179,32 @@
     document.body.appendChild(a);
   }
 
-  /* ---------- Scroll reveal ---------- */
+  /* ---------- أيقونات عائمة إضافية: فيسبوك / يوتيوب / سناب شات ---------- */
+  function renderExtraFloats() {
+    var links = [
+      { key: "facebook", cls: "fb-float", label: "Facebook", iconName: "fb", bottom: 152 },
+      { key: "youtube", cls: "yt-float", label: "YouTube", iconName: "yt", bottom: 212 },
+      { key: "snapchat", cls: "snap-float", label: "Snapchat", iconName: "snap", bottom: 272 },
+    ];
+    links.forEach(function (item) {
+      var url = SITE_CONFIG.social[item.key];
+      if (!url || url.indexOf("[") === 0) return; // لا يوجد رابط حقيقي بعد لهذه المنصة
+      if (document.getElementById(item.cls)) return;
+      var a = document.createElement("a");
+      a.id = item.cls;
+      a.className = "extra-float " + item.cls;
+      a.style.bottom = item.bottom + "px";
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.setAttribute("aria-label", item.label);
+      a.title = item.label;
+      a.innerHTML = icon(item.iconName).replace(/16/g, "24");
+      document.body.appendChild(a);
+    });
+  }
+
+
   function initReveal() {
     const items = document.querySelectorAll(".reveal");
     if (!("IntersectionObserver" in window) || items.length === 0) {
@@ -298,11 +333,13 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    applySiteBackground();
     renderTicker();
     renderHeader();
     renderFooter();
     renderWaFloat();
     renderSocialFloat();
+    renderExtraFloats();
     initReveal();
     initFilters();
     initLightbox();
