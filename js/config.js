@@ -25,7 +25,7 @@ const SITE_CONFIG = {
   "contact": {
     "phone": "+968 93966645",
     "whatsapp": "96893966645",
-    "email": "[COMPANY_EMAIL]",
+    "email": "omar2026612@gmail.com",
     "address": {
       "ar": "[COMPANY_ADDRESS]",
       "en": "[COMPANY_ADDRESS_EN]"
