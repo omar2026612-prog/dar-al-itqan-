@@ -71,15 +71,5 @@ let VIDEOS = [
       "en": "دار الاتقان"
     },
     "category": "promo"
-  },
-  {
-    "id": "video-mtcw05sw20",
-    "type": "file",
-    "url": "videos/video-mtcw05sw20.mp4",
-    "title": {
-      "ar": "دار",
-      "en": "دار"
-    },
-    "category": "promo"
   }
 ];
