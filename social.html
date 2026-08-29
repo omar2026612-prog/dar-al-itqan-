@@ -95,7 +95,6 @@
     const wa = document.getElementById("ctaWaLink");
     if (wa) wa.href = getWhatsAppLink();
 
-    // ---------- انستغرام ----------
     const igUrl = (SITE_CONFIG.social.instagram || "").split("?")[0];
     const igLink = document.getElementById("igProfileLink");
     if (igUrl && !igUrl.includes("[")) {
@@ -124,7 +123,6 @@
       igEmpty.hidden = false;
     }
 
-    // ---------- روابط أخرى: يوتيوب / تيك توك / سناب شات ----------
     const otherLinks = [
       { key: "youtube", label: "يوتيوب ↗" },
       { key: "tiktok", label: "تيك توك ↗" },
@@ -141,7 +139,6 @@
       }
     }
 
-    // ---------- فيسبوك: تضمين صفحة حي (Page Plugin) ----------
     const fbUrl = (SITE_CONFIG.social.facebook || "").split("?")[0];
     if (fbUrl && !fbUrl.includes("[")) {
       document.getElementById("fbPageEmbed").innerHTML = `
