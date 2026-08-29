@@ -7,16 +7,9 @@
   var LS_CONFIG = "itqan_admin_config";
   var LS_GITHUB = "itqan_github_settings"; // {owner, repo, branch, baseDir, token} — يبقى محلياً فقط، لا يُصدَّر أبداً
   var SS_AUTH = "itqan_admin_auth";
-  // علم دائم (لا يُمسح بإغلاق المتصفح) يُستخدم لإظهار "وضع المالك" في كل صفحات
-  // الموقع العامة (أيقونة التحكم + أزرار تعديل سريعة) — يبقى حتى تسجيل الخروج يدوياً.
   var LS_OWNER = "itqan_owner_mode";
 
-  /* =========================================================
-     تحميل الحالة الحالية (من المسودّة المحفوظة أو من ملفات المصدر)
-     ========================================================= */
   function loadProjects() {
-    // دائماً نبدأ من البيانات المنشورة فعلياً (js/projects.js) — لا نعتمد على أي
-    // مسودة محلية قديمة، حتى تعرض لوحة التحكم نفس المحتوى الحقيقي على أي متصفح/جهاز.
     return JSON.parse(JSON.stringify((typeof PROJECTS !== "undefined" && PROJECTS) || []));
   }
   function loadVideos() {
@@ -49,26 +42,15 @@
     editingProjectId: null,
     editingVideoId: null,
     editingInstagramId: null,
-    pendingCoverImage: null, // {dataUrl, ext}
-    pendingGalleryImages: [], // [{dataUrl, ext}]
-    pendingVideoFile: null, // {dataUrl, ext, name}
-    videoMode: "link", // "link" | "file"
+    pendingCoverImage: null,
+    pendingGalleryImages: [],
+    pendingVideoFile: null,
+    videoMode: "link",
   };
 
-  function saveProjects() {
-    // لا حاجة للتخزين المحلي بعد الآن — العمل مباشرة على البيانات المنشورة،
-    // والنشر الفوري (🚀) هو ما يحفظ التغييرات فعلياً على GitHub.
-  }
-  // يحاول حفظ الفيديوهات في المتصفح؛ قد يفشل إن كان فيديو الملف المرفوع كبيراً
-  // جداً على سعة التخزين المحلي (localStorage) — في هذه الحالة نتابع العمل
-  // بالحالة الحالية في الذاكرة (كافية لإتمام "التصدير" في نفس الجلسة) ونحذّر المستخدم.
-  function saveVideos() {
-    // لا حاجة للتخزين المحلي — النشر المباشر هو ما يحفظ التغييرات فعلياً.
-    return true;
-  }
-  function saveInstagramPosts() {
-    // لا حاجة للتخزين المحلي — النشر المباشر هو ما يحفظ التغييرات فعلياً.
-  }
+  function saveProjects() {}
+  function saveVideos() { return true; }
+  function saveInstagramPosts() {}
   function saveConfigPatch() {
     localStorage.setItem(LS_CONFIG, JSON.stringify(state.configPatch));
   }
@@ -81,24 +63,15 @@
     decor: "ديكورات", promo: "دعائي عام",
   };
 
-  /* =========================================================
-     شاشة الدخول
-     ========================================================= */
   function initGate() {
     var gate = document.getElementById("gate");
     var shell = document.getElementById("shell");
     var pass = document.getElementById("gatePass");
     var err = document.getElementById("gateErr");
     var btn = document.getElementById("gateBtn");
-
-    // ملاحظة: كلمة المرور الافتراضية 123456789 مكتوبة هنا مباشرة كخيار احتياطي،
-    // بحيث يعمل الدخول فوراً حتى لو تأخر تحميل js/config.js لأي سبب (بطء قرص،
-    // مزامنة OneDrive، إلخ). إن كانت SITE_CONFIG.adminPasscode محمّلة ومختلفة
-    // عن هذه القيمة، تُستخدم قيمتها هي (أي تعديلك في config.js له الأولوية).
     var FALLBACK_PASSCODE = "123456789";
 
     function normalizeDigits(str) {
-      // يحوّل الأرقام العربية (٠-٩) والفارسية (۰-۹) إلى أرقام إنجليزية عادية
       var arabicIndic = "٠١٢٣٤٥٦٧٨٩";
       var persian = "۰۱۲۳۴۵۶۷۸۹";
       var converted = String(str).replace(/[٠-٩۰-۹]/g, function (ch) {
@@ -108,12 +81,9 @@
         if (i !== -1) return String(i);
         return ch;
       });
-      // يزيل أي محارف غير مرئية (مثل علامات اتجاه النص RLM/LRM أو مسافات خاصة
-      // قد تُنسخ عن طريق الخطأ من ملف PDF أو واتساب) ويُبقي الأرقام فقط
       return converted.replace(/\D/g, "");
     }
 
-    // زر إظهار/إخفاء كلمة المرور — يساعد على التأكد من الأرقام المكتوبة فعلياً
     var toggleBtn = document.getElementById("gateShowPass");
     if (toggleBtn) {
       toggleBtn.addEventListener("click", function () {
@@ -127,7 +97,7 @@
       var entered = normalizeDigits(pass.value);
       if (entered === code && entered.length > 0) {
         sessionStorage.setItem(SS_AUTH, "1");
-        localStorage.setItem(LS_OWNER, "1"); // يُبقي صاحب الموقع مسجّلاً في هذا المتصفح ويُظهر له أدوات التحكم في كل صفحات الموقع
+        localStorage.setItem(LS_OWNER, "1");
         gate.style.display = "none";
         shell.classList.add("is-active");
         renderAll();
@@ -148,25 +118,19 @@
 
     document.getElementById("logoutBtn").addEventListener("click", function () {
       sessionStorage.removeItem(SS_AUTH);
-      localStorage.removeItem(LS_OWNER); // يخفي أدوات وضع المالك فوراً من كل صفحات الموقع في هذا المتصفح
+      localStorage.removeItem(LS_OWNER);
       location.reload();
     });
   }
 
-  /* =========================================================
-     روابط مباشرة من الموقع العام (أزرار "✎ تعديل" و"+ جديد" التي
-     تظهر لصاحب الموقع فوق المشاريع/الفيديوهات) — تفتح لوحة التحكم
-     مباشرة على التبويب والعنصر المطلوبين عبر رابط مثل:
-     admin.html?edit=project&id=xxx  أو  admin.html?new=video
-     ========================================================= */
   function goToPanel(name) {
     var btn = document.querySelector('.admin-nav button[data-panel="' + name + '"]');
     if (btn) btn.click();
   }
   function handleDeepLink() {
     var params = new URLSearchParams(location.search);
-    var editSpec = params.get("edit"); // "project" أو "video"
-    var newSpec = params.get("new");   // "project" أو "video"
+    var editSpec = params.get("edit");
+    var newSpec = params.get("new");
     var id = params.get("id");
 
     if (editSpec === "project") {
@@ -186,15 +150,11 @@
     } else if (newSpec === "instagram") {
       goToPanel("instagram");
     }
-    // ننظّف الرابط حتى لا يُعاد فتح نفس النموذج عند تحديث الصفحة
     if (editSpec || newSpec) {
       history.replaceState(null, "", "admin.html");
     }
   }
 
-  /* =========================================================
-     تبديل التبويبات
-     ========================================================= */
   function initTabs() {
     var buttons = document.querySelectorAll(".admin-nav button");
     buttons.forEach(function (btn) {
@@ -218,9 +178,6 @@
     if (igSpan) igSpan.textContent = (SITE_CONFIG.social.instagram || "").replace(/^https?:\/\/(www\.)?/, "");
   }
 
-  /* =========================================================
-     أدوات مساعدة عامة
-     ========================================================= */
   function slugId(prefix) {
     return prefix + "-" + Date.now().toString(36) + Math.floor(Math.random() * 100);
   }
@@ -249,9 +206,6 @@
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
 
-  /* =========================================================
-     المشاريع — جدول + نموذج
-     ========================================================= */
   function renderProjectsTable() {
     var tbody = document.getElementById("projectsTbody");
     var empty = document.getElementById("projectsEmpty");
@@ -381,7 +335,6 @@
           ar: document.getElementById("pDescAr").value.trim(),
           en: document.getElementById("pDescEn").value.trim(),
         },
-        // نحتفظ بالصور الفعلية (Base64) مؤقتاً هنا للتنزيل عند التصدير — لا تُكتب داخل ملف projects.js النهائي
         _pendingCover: state.pendingCoverImage,
         _pendingGallery: state.pendingGalleryImages,
       };
@@ -400,7 +353,6 @@
 
   function exportProjects() {
     if (!state.projects.length) { alert("لا توجد مشاريع لتصديرها بعد."); return; }
-    // تنزيل الصور الجديدة (Base64) بأسمائها المقترحة
     state.projects.forEach(function (p) {
       if (p._pendingCover) downloadDataUrl(p.id + "-cover." + p._pendingCover.ext, p._pendingCover.dataUrl);
       if (p._pendingGallery && p._pendingGallery.length) {
@@ -423,9 +375,6 @@
     downloadBlob("projects.js", content, "application/javascript;charset=utf-8");
   }
 
-  /* =========================================================
-     الفيديوهات — جدول + نموذج
-     ========================================================= */
   function detectVideoType(url) {
     if (/facebook\.com|fb\.watch/.test(url)) return "facebook";
     if (/youtube\.com|youtu\.be/.test(url)) return "youtube";
@@ -545,9 +494,6 @@
       var record;
 
       if (state.videoMode === "file") {
-        // فيديو مرفوع من الجهاز: نستخدم رابط Base64 مباشرة كمعاينة فورية وحقيقية
-        // داخل هذا المتصفح، ونحتفظ بنفس البيانات في _pendingVideo لتنزيل الملف
-        // الفعلي عند "تصدير" الفيديوهات، مع مسار نهائي داخل videos/ للاستضافة.
         var pending = state.pendingVideoFile || (existing && existing._pendingVideo);
         var url = pending ? pending.dataUrl : (existing ? existing.url : null);
         if (!url) { alert("الرجاء اختيار ملف فيديو."); return; }
@@ -588,9 +534,6 @@
 
   function exportVideos() {
     if (!state.videos.length) { alert("لا توجد فيديوهات لتصديرها بعد."); return; }
-
-    // تنزيل ملفات الفيديو المرفوعة حديثاً بأسمائها الصحيحة، واستبدال الرابط
-    // المؤقت (Base64) في البيانات المصدَّرة بمسار دائم داخل videos/
     var hadFiles = false;
     state.videos.forEach(function (v) {
       if (v._pendingVideo) {
@@ -613,15 +556,10 @@
       "let VIDEOS = " + JSON.stringify(clean, null, 2) + ";\n";
     downloadBlob("videos.js", content, "application/javascript;charset=utf-8");
 
-    // بعد التصدير، ننظّف الروابط المؤقتة الثقيلة (Base64) من الحالة المحفوظة محلياً
-    // لتفادي امتلاء مساحة التخزين المؤقت للمتصفح، مع إبقاء بيانات الفيديو كما هي.
     state.videos.forEach(function (v) { delete v._pendingVideo; });
     saveVideos();
   }
 
-  /* =========================================================
-     استيراد رابط فيسبوك (معاينة + إضافة كفيديو)
-     ========================================================= */
   function initFacebookImport() {
     document.getElementById("fbImportBtn").addEventListener("click", function () {
       var url = document.getElementById("fbImportUrl").value.trim();
@@ -642,9 +580,6 @@
     });
   }
 
-  /* =========================================================
-     انستغرام — منشورات مميّزة (تضمين رسمي بدون مفتاح API)
-     ========================================================= */
   function ensureInstagramEmbedScript(cb) {
     if (window.instgrm) { cb(); return; }
     var existing = document.getElementById("ig-embed-script");
@@ -711,9 +646,6 @@
     downloadBlob("instagram.js", content, "application/javascript;charset=utf-8");
   }
 
-  /* =========================================================
-     النشر المباشر على GitHub (بديل تلقائي عن التنزيل والرفع اليدوي)
-     ========================================================= */
   function ghConfigured() {
     return !!(state.github.owner && state.github.repo && state.github.token);
   }
@@ -777,13 +709,6 @@
     return res.json();
   }
 
-  /**
-   * ينشر عدة ملفات (نصية أو ثنائية كالفيديوهات والصور) في التزام واحد (commit)
-   * عبر Git Data API — على عكس ghPutFile (Contents API) المحدود بـ 1 ميجابايت
-   * للملف الواحد، هذا المسار يدعم ملفات أكبر بكثير (حتى ~100 ميجابايت) وهو
-   * سبب فشل نشر الفيديوهات سابقاً بصمت عند تجاوزها 1 ميجابايت.
-   * files: [{ path, content, isBase64 }]
-   */
   async function ghCommitFiles(files, message) {
     var branch = state.github.branch || "main";
     var refData = await ghApiJson("/git/ref/" + ghEncodePath("heads/" + branch), "GET").catch(function (e) {
@@ -986,7 +911,18 @@
     if (!requireGithub()) return;
     setBtnBusy(btn, "⏳ جارٍ النشر...");
     try {
-      await ghPutFile("js/config.js", utf8ToBase64(buildConfigFileContent()), "تحديث بيانات الشركة من لوحة التحكم");
+      if (state.pendingBgImage) {
+        var bgPath = "images/branding/site-bg." + state.pendingBgImage.ext;
+        SITE_CONFIG.siteBackgroundImage = bgPath;
+        btn.textContent = "⏳ جارٍ رفع صورة الخلفية ونشر البيانات...";
+        await ghCommitFiles([
+          { path: bgPath, content: state.pendingBgImage.dataUrl.split(",")[1], isBase64: true },
+          { path: "js/config.js", content: buildConfigFileContent(), isBase64: false },
+        ], "تحديث بيانات الشركة وصورة الخلفية من لوحة التحكم");
+        state.pendingBgImage = null;
+      } else {
+        await ghPutFile("js/config.js", utf8ToBase64(buildConfigFileContent()), "تحديث بيانات الشركة من لوحة التحكم");
+      }
       alert("تم نشر بيانات الشركة على الموقع مباشرة ✓");
     } catch (err) {
       alert("حدث خطأ أثناء النشر: " + err.message);
@@ -995,9 +931,6 @@
     }
   }
 
-  /* =========================================================
-     بيانات الشركة
-     ========================================================= */
   function fillCompanyForm() {
     var c = SITE_CONFIG.contact, s = SITE_CONFIG.social;
     document.getElementById("cPhone").value = c.phone || "";
@@ -1036,6 +969,19 @@
   function initCompanyForm() {
     document.getElementById("cMapsQuery").addEventListener("input", updateMapPreview);
     document.getElementById("cMaps").addEventListener("input", updateMapPreview);
+
+    state.pendingBgImage = null;
+    if (SITE_CONFIG.siteBackgroundImage && SITE_CONFIG.siteBackgroundImage.indexOf("[") !== 0 && SITE_CONFIG.siteBackgroundImage.trim()) {
+      document.getElementById("cBgImagePreview").innerHTML = '<div class="a-thumb-item"><img src="' + SITE_CONFIG.siteBackgroundImage + '" /></div>';
+    }
+    document.getElementById("cBgImageFile").addEventListener("change", function (e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      fileToDataUrl(file).then(function (dataUrl) {
+        state.pendingBgImage = { dataUrl: dataUrl, ext: extFromFile(file) };
+        document.getElementById("cBgImagePreview").innerHTML = '<div class="a-thumb-item"><img src="' + dataUrl + '" /></div>';
+      });
+    });
 
     function applyCompanyFormPatch() {
       var patch = {
@@ -1094,6 +1040,7 @@
       "const SITE_CONFIG = " + JSON.stringify({
         companyName: c.companyName, tagline: c.tagline, shortDescription: c.shortDescription, country: c.country,
         contact: c.contact, social: c.social, googleMapsQuery: c.googleMapsQuery, googleMapsEmbedUrl: c.googleMapsEmbedUrl,
+        siteBackgroundImage: c.siteBackgroundImage || "",
         whatsappDefaultMessage: c.whatsappDefaultMessage, tickerText: c.tickerText, nav: c.nav, adminPasscode: c.adminPasscode,
       }, null, 2) + ";\n\n" +
       "function getWhatsAppLink(customMessage) {\n" +
@@ -1117,9 +1064,6 @@
     downloadBlob("config.js", buildConfigFileContent(), "application/javascript;charset=utf-8");
   }
 
-  /* =========================================================
-     تشغيل
-     ========================================================= */
   document.addEventListener("DOMContentLoaded", function () {
     initGate();
     initTabs();
