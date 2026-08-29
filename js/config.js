@@ -44,6 +44,7 @@ const SITE_CONFIG = {
   },
   "googleMapsQuery": "",
   "googleMapsEmbedUrl": "",
+  "siteBackgroundImage": "images/branding/site-bg.jpg",
   "whatsappDefaultMessage": {
     "ar": "السلام عليكم، أرغب في الاستفسار عن تصميم وتنفيذ مطبخ/ديكور.",
     "en": "Hello, I'd like to inquire about kitchen/decor design and execution."
