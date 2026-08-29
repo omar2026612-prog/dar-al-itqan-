@@ -26,6 +26,7 @@ html{scroll-behavior:smooth;}
 @media (prefers-reduced-motion: reduce){
   html{scroll-behavior:auto;}
   *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+  .ticker-track{animation-duration:40s !important; animation-iteration-count:infinite !important;}
 }
 body{
   margin:0;
@@ -45,9 +46,6 @@ button{font-family:inherit;cursor:pointer;}
 :focus-visible{outline:2px solid var(--bronze);outline-offset:3px;}
 
 /* ---------- صورة خلفية عامة للموقع (اختيارية، تُضبط من لوحة التحكم) ---------- */
-/* تُطبَّق عبر إضافة كلاس has-bg-image على body من main.js عندما تكون
-   SITE_CONFIG.siteBackgroundImage معرَّفة. تغطي كامل الصفحة من الأعلى للأسفل
-   وتبقى ثابتة أثناء التمرير، مع طبقة شفافة فوقها لضمان وضوح النصوص. */
 body.has-bg-image{
   background-repeat:no-repeat;
   background-position:center top;
@@ -59,7 +57,7 @@ body.has-bg-image::before{
   position:fixed;
   inset:0;
   z-index:0;
-  background:rgba(250,247,240,.9);
+  background:rgba(250,247,240,.78);
   pointer-events:none;
 }
 body.has-bg-image > *{
@@ -87,14 +85,16 @@ body.has-bg-image > *{
 .section--tight{padding:64px 0;}
 .section--dark{background:var(--charcoal);color:var(--ivory);}
 .section--bone{background:var(--bone);}
+body.has-bg-image .section--dark{background:rgba(24,22,26,.88);}
+body.has-bg-image .section--bone{background:rgba(234,226,210,.85);}
+body.has-bg-image .service-card{background:rgba(246,241,231,.85);}
+body.has-bg-image .service-card:hover{background:rgba(234,226,210,.9);}
 
 h2.h-title{font-size:clamp(30px,4.4vw,52px);line-height:1.18;}
 h3.h-sub{font-size:clamp(20px,2.4vw,26px);line-height:1.4;}
 .lede{font-size:18px;line-height:1.85;color:#4A453D;max-width:640px;}
 .section--dark .lede{color:rgba(246,241,231,.75);}
 
-/* ---------- Joinery bracket signature motif ---------- */
-/* وحدة الزاوية المستوحاة من وصلات النجارة الدقيقة */
 .bracket{position:relative;}
 .bracket::before,.bracket::after{
   content:"";
@@ -106,7 +106,6 @@ h3.h-sub{font-size:clamp(20px,2.4vw,26px);line-height:1.4;}
 .bracket::before{top:-10px;inset-inline-start:-10px;border-inline-end:none;border-bottom:none;}
 .bracket::after{bottom:-10px;inset-inline-end:-10px;border-inline-start:none;border-top:none;}
 
-/* ---------- Buttons ---------- */
 .btn{
   display:inline-flex;align-items:center;gap:10px;
   padding:15px 30px;
@@ -124,8 +123,6 @@ h3.h-sub{font-size:clamp(20px,2.4vw,26px);line-height:1.4;}
 .btn--wa{background:#25D366;color:#0b3016;}
 .btn--wa:hover{background:#2fe375;}
 
-/* ---------- Header ---------- */
-/* ---------- الشريط المتحرك (Ticker) ---------- */
 .site-ticker{
   position:fixed;inset-inline:0;top:0;z-index:101;height:34px;
   background:linear-gradient(90deg,var(--charcoal),#2a2620,var(--charcoal));
@@ -183,7 +180,6 @@ body.has-ticker .site-header{top:34px;}
 .mobile-menu a{color:var(--ivory);font-family:var(--font-display);font-size:30px;}
 .mobile-menu .mm-close{position:absolute;top:22px;inset-inline-end:24px;background:none;border:0;color:var(--ivory);font-size:26px;}
 
-/* ---------- Hero ---------- */
 .hero{
   position:relative;min-height:100svh;display:flex;align-items:flex-end;
   background:linear-gradient(180deg,rgba(20,18,16,.35) 0%,rgba(18,16,14,.55) 55%,rgba(15,13,11,.92) 100%),
@@ -201,14 +197,12 @@ body.has-ticker .site-header{top:34px;}
 .hero-scroll{position:absolute;bottom:28px;inset-inline-start:50%;transform:translateX(-50%);color:rgba(246,241,231,.6);font-size:11px;letter-spacing:2px;display:flex;flex-direction:column;align-items:center;gap:10px;}
 .hero-scroll .line{width:1px;height:34px;background:linear-gradient(var(--bronze-light),transparent);}
 
-/* ---------- Reveal animation ---------- */
 .reveal{opacity:0;transform:translateY(28px);transition:opacity .9s var(--ease),transform .9s var(--ease);}
 .reveal.is-visible{opacity:1;transform:translateY(0);}
 .reveal-delay-1{transition-delay:.1s;}
 .reveal-delay-2{transition-delay:.22s;}
 .reveal-delay-3{transition-delay:.34s;}
 
-/* ---------- Services grid ---------- */
 .services-grid{display:grid;grid-template-columns:1fr;gap:2px;background:var(--line-dark);margin-top:56px;}
 @media(min-width:720px){.services-grid{grid-template-columns:1fr 1fr;}}
 @media(min-width:1100px){.services-grid{grid-template-columns:repeat(3,1fr);}}
@@ -218,7 +212,6 @@ body.has-ticker .site-header{top:34px;}
 .service-card h3{font-size:23px;margin-top:18px;margin-bottom:12px;}
 .service-card p{color:#4A453D;font-size:15px;}
 
-/* ---------- Why us ---------- */
 .why-grid{display:grid;grid-template-columns:1fr;gap:36px;margin-top:56px;}
 @media(min-width:720px){.why-grid{grid-template-columns:1fr 1fr;}}
 .why-item{display:flex;gap:18px;}
@@ -226,7 +219,6 @@ body.has-ticker .site-header{top:34px;}
 .why-item h4{font-size:18px;margin-bottom:6px;}
 .why-item p{color:rgba(246,241,231,.7);font-size:14.5px;}
 
-/* ---------- Process ---------- */
 .process-list{display:grid;grid-template-columns:1fr;margin-top:60px;border-top:1px solid var(--line-dark);}
 @media(min-width:860px){.process-list{grid-template-columns:repeat(5,1fr);}}
 .process-item{padding:30px 22px;border-bottom:1px solid var(--line-dark);position:relative;}
@@ -235,7 +227,6 @@ body.has-ticker .site-header{top:34px;}
 .process-item h4{font-size:17px;margin-top:14px;margin-bottom:8px;}
 .process-item p{font-size:13.5px;color:#4A453D;}
 
-/* ---------- Portfolio / Masonry ---------- */
 .filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin:40px 0 6px;}
 .filter-btn{padding:9px 20px;border:1px solid var(--line-dark);font-size:13.5px;background:transparent;transition:all .3s var(--ease);}
 .filter-btn.is-active,.filter-btn:hover{background:var(--charcoal);color:var(--ivory);border-color:var(--charcoal);}
@@ -259,7 +250,6 @@ body.has-ticker .site-header{top:34px;}
 .ph-tile svg{width:38px;height:38px;opacity:.7;}
 .ph-tile span{font-size:12px;letter-spacing:1px;}
 
-/* ---------- Lightbox ---------- */
 .lightbox{position:fixed;inset:0;background:rgba(15,13,11,.97);z-index:200;display:none;align-items:center;justify-content:center;}
 .lightbox.is-open{display:flex;}
 .lightbox img,.lightbox .ph-tile{max-width:min(88vw,900px);max-height:80vh;}
@@ -269,8 +259,6 @@ body.has-ticker .site-header{top:34px;}
 .lb-next{inset-inline-end:20px;top:50%;transform:translateY(-50%);}
 .lb-counter{position:absolute;bottom:26px;inset-inline-start:50%;transform:translateX(-50%);color:rgba(246,241,231,.7);font-size:13px;letter-spacing:1px;}
 
-/* ---------- Testimonials ---------- */
-/* ---------------- Video gallery ---------------- */
 .video-grid{display:grid;grid-template-columns:1fr;gap:28px;margin-top:34px;}
 @media(min-width:700px){.video-grid{grid-template-columns:1fr 1fr;}}
 .video-card{background:var(--ivory);border:1px solid var(--line-dark);}
@@ -285,16 +273,15 @@ body.has-ticker .site-header{top:34px;}
 .testi-card{background:var(--ivory);padding:34px;border-inline-start:2px solid var(--bronze);}
 .stars{color:var(--bronze);letter-spacing:3px;margin-bottom:14px;}
 
-/* ---------- CTA band ---------- */
 .cta-band{
   background:linear-gradient(135deg,var(--charcoal) 0%,#221c17 100%);
   color:var(--ivory);text-align:center;padding:90px 24px;
 }
+body.has-bg-image .cta-band{background:linear-gradient(135deg,rgba(24,22,26,.88) 0%,rgba(34,28,23,.88) 100%);}
 .cta-band h2{font-size:clamp(28px,4vw,46px);max-width:700px;margin-inline:auto;}
 .cta-band p{margin-top:16px;color:rgba(246,241,231,.72);max-width:520px;margin-inline:auto;}
 .cta-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-top:36px;}
 
-/* ---------- Forms ---------- */
 .form-grid{display:grid;grid-template-columns:1fr;gap:22px;margin-top:44px;}
 @media(min-width:720px){.form-grid{grid-template-columns:1fr 1fr;}}
 .form-grid .full{grid-column:1/-1;}
@@ -307,7 +294,6 @@ body.has-ticker .site-header{top:34px;}
 .field textarea{resize:vertical;min-height:120px;}
 .file-drop{border:1px dashed var(--line-dark);padding:26px;text-align:center;font-size:13.5px;color:#6b6559;cursor:pointer;}
 
-/* ---------- Contact info blocks ---------- */
 .info-grid{display:grid;grid-template-columns:1fr;gap:2px;background:var(--line-dark);margin-top:50px;}
 @media(min-width:720px){.info-grid{grid-template-columns:repeat(2,1fr);}}
 .info-card{background:var(--ivory);padding:32px;}
@@ -316,7 +302,6 @@ body.has-ticker .site-header{top:34px;}
 .map-wrap{margin-top:56px;aspect-ratio:16/7;background:var(--bone);display:flex;align-items:center;justify-content:center;color:#6b6559;font-size:14px;}
 .map-wrap iframe{width:100%;height:100%;border:0;}
 
-/* ---------- Before/After slider ---------- */
 .ba-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;margin-top:56px;user-select:none;}
 .ba-after,.ba-before{position:absolute;inset:0;}
 .ba-before{overflow:hidden;width:50%;}
@@ -328,8 +313,8 @@ body.has-ticker .site-header{top:34px;}
 .ba-tag.before{inset-inline-start:16px;}
 .ba-tag.after{inset-inline-end:16px;}
 
-/* ---------- Footer ---------- */
 .site-footer{background:var(--charcoal);color:rgba(246,241,231,.75);padding-top:80px;}
+body.has-bg-image .site-footer{background:rgba(24,22,26,.9);}
 .footer-grid{display:grid;grid-template-columns:1fr;gap:44px;padding-bottom:56px;border-bottom:1px solid rgba(246,241,231,.1);}
 @media(min-width:860px){.footer-grid{grid-template-columns:1.4fr 1fr 1fr 1fr;}}
 .footer-grid h5{color:var(--ivory);font-size:14px;letter-spacing:1px;margin-bottom:20px;}
@@ -341,7 +326,6 @@ body.has-ticker .site-header{top:34px;}
 .social-row a:hover{background:var(--bronze);border-color:var(--bronze);color:var(--charcoal);}
 .footer-bottom{padding:24px 0;font-size:12.5px;color:rgba(246,241,231,.45);text-align:center;}
 
-/* ---------- WhatsApp float ---------- */
 .wa-float{
   position:fixed;bottom:22px;inset-inline-end:22px;z-index:90;
   width:60px;height:60px;border-radius:50%;background:#25D366;color:#fff;
@@ -351,7 +335,6 @@ body.has-ticker .site-header{top:34px;}
 .wa-float:hover{transform:scale(1.08);}
 .wa-float svg{width:30px;height:30px;}
 
-/* ---------- Social hub float (Facebook/Instagram) ---------- */
 .social-float{
   position:fixed;bottom:92px;inset-inline-end:26px;z-index:90;
   width:50px;height:50px;border-radius:50%;color:#fff;
@@ -361,7 +344,6 @@ body.has-ticker .site-header{top:34px;}
 }
 .social-float:hover{transform:scale(1.08);}
 
-/* ---------- أيقونات عائمة إضافية: فيسبوك / يوتيوب / سناب شات ---------- */
 .extra-float{
   position:fixed;inset-inline-end:28px;z-index:90;
   width:48px;height:48px;border-radius:50%;color:#fff;
@@ -373,11 +355,9 @@ body.has-ticker .site-header{top:34px;}
 .yt-float{background:#FF0000;}
 .snap-float{background:#FFFC00;color:#000;}
 
-/* ---------- 404 ---------- */
 .error-page{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:var(--charcoal);color:var(--ivory);}
 .error-page .big{font-family:var(--font-display);font-size:clamp(70px,14vw,160px);color:var(--bronze);line-height:1;}
 
-/* ---------- Utility ---------- */
 .skip-link{position:absolute;top:-60px;inset-inline-start:16px;background:var(--bronze);color:var(--charcoal);padding:10px 18px;z-index:999;transition:top .3s;}
 .skip-link:focus{top:16px;}
 .text-center{text-align:center;}
