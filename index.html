@@ -158,7 +158,8 @@
         <span class="eyebrow">آراء العملاء</span>
         <h2 class="h-title">ثقة عملائنا</h2>
       </div>
-      <div class="testi-empty reveal">
+      <div class="testi-grid" id="testiGrid" hidden></div>
+      <div class="testi-empty reveal" id="testiEmpty">
         <p>سيتم إضافة آراء العملاء الحقيقية هنا فور توفرها من المصدر الرسمي — هذا القسم مُجهّز كنظام إدارة محتوى (CMS) قابل للتحديث دون الحاجة لتعديل الكود.</p>
       </div>
     </div>
@@ -181,6 +182,7 @@
 
 <script src="js/config.js"></script>
 <script src="js/projects.js"></script>
+<script src="js/reviews.js"></script>
 <script src="js/draft-merge.js"></script>
 <script src="js/main.js"></script>
 <script>
@@ -201,6 +203,27 @@
           </a>
         </div>`
         )
+        .join("");
+    }
+
+    const testiGrid = document.getElementById("testiGrid");
+    const testiEmpty = document.getElementById("testiEmpty");
+    const reviews = (typeof REVIEWS !== "undefined" && REVIEWS) || [];
+    if (testiGrid && reviews.length) {
+      const lang = document.documentElement.lang === "en" ? "en" : "ar";
+      testiGrid.hidden = false;
+      if (testiEmpty) testiEmpty.hidden = true;
+      testiGrid.innerHTML = reviews
+        .map((r) => {
+          const stars = "★".repeat(Math.max(1, Math.min(5, r.rating || 5))) + "☆".repeat(5 - Math.max(1, Math.min(5, r.rating || 5)));
+          const text = (r.text && r.text[lang]) || (r.text && r.text.ar) || "";
+          return `
+        <div class="testi-card reveal">
+          <div class="stars">${stars}</div>
+          <p>${text}</p>
+          <div class="testi-name">— ${r.name || ""}${r.project ? ` <span class="testi-proj">(${r.project})</span>` : ""}</div>
+        </div>`;
+        })
         .join("");
     }
   });
