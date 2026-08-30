@@ -37,6 +37,7 @@
       <button data-panel="videos">🎬 الفيديوهات</button>
       <button data-panel="facebook">📘 ربط فيسبوك</button>
       <button data-panel="instagram">📸 ربط انستغرام</button>
+      <button data-panel="reviews">⭐ آراء العملاء</button>
       <button data-panel="company">🏷️ بيانات الشركة</button>
       <button data-panel="publish">🚀 النشر المباشر</button>
       <button data-panel="help">❓ طريقة الاستخدام</button>
@@ -265,6 +266,62 @@
       </div>
     </section>
 
+    <!-- ===================== آراء العملاء ===================== -->
+    <section class="admin-panel" id="panel-reviews">
+      <div class="admin-head">
+        <div>
+          <h2>آراء العملاء</h2>
+          <p>أضف رأي عميل حقيقي (بعد التأكد منه) ليظهر في قسم "ثقة عملائنا" بالصفحة الرئيسية.</p>
+        </div>
+      </div>
+      <div class="a-actions">
+        <button class="a-btn" id="newReviewBtn">+ رأي جديد</button>
+        <button class="a-btn publish-btn" id="publishReviewsBtn">🚀 نشر مباشر على الموقع</button>
+      </div>
+
+      <table class="a-table" id="reviewsTable">
+        <thead><tr><th>اسم العميل</th><th>التقييم</th><th>نص الرأي</th><th></th></tr></thead>
+        <tbody id="reviewsTbody"></tbody>
+      </table>
+      <div class="a-empty" id="reviewsEmpty" hidden>لا توجد آراء بعد — أضف أول رأي عميل حقيقي.</div>
+
+      <form class="a-form" id="reviewForm" hidden>
+        <h3 id="reviewFormTitle" style="margin-bottom:18px;">رأي جديد</h3>
+        <div class="a-grid">
+          <div class="a-field">
+            <label>اسم العميل *</label>
+            <input type="text" id="rName" required />
+          </div>
+          <div class="a-field">
+            <label>المشروع / الخدمة <span class="sub">(اختياري)</span></label>
+            <input type="text" id="rProject" placeholder="مثال: مطبخ، غرفة نوم..." />
+          </div>
+          <div class="a-field">
+            <label>التقييم (من 5) *</label>
+            <select id="rRating">
+              <option value="5">★★★★★ (5)</option>
+              <option value="4">★★★★☆ (4)</option>
+              <option value="3">★★★☆☆ (3)</option>
+              <option value="2">★★☆☆☆ (2)</option>
+              <option value="1">★☆☆☆☆ (1)</option>
+            </select>
+          </div>
+          <div class="a-field full">
+            <label>نص الرأي (عربي) *</label>
+            <textarea id="rTextAr" required placeholder="اكتب رأي العميل كما قاله، بدون تعديل..."></textarea>
+          </div>
+          <div class="a-field full">
+            <label>Review text (English) <span class="sub">اختياري</span></label>
+            <textarea id="rTextEn"></textarea>
+          </div>
+        </div>
+        <div class="a-form-actions">
+          <button type="submit" class="a-btn">حفظ الرأي</button>
+          <button type="button" class="a-btn outline" id="cancelReviewBtn">إلغاء</button>
+        </div>
+      </form>
+    </section>
+
     <!-- ===================== بيانات الشركة ===================== -->
     <section class="admin-panel" id="panel-company">
       <div class="admin-head">
@@ -457,6 +514,7 @@
 <script src="js/projects.js"></script>
 <script src="js/videos.js"></script>
 <script src="js/instagram.js"></script>
+<script src="js/reviews.js"></script>
 <script src="js/admin.js"></script>
 </body>
 </html>
