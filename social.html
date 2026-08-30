@@ -95,6 +95,7 @@
     const wa = document.getElementById("ctaWaLink");
     if (wa) wa.href = getWhatsAppLink();
 
+    // ---------- انستغرام ----------
     const igUrl = (SITE_CONFIG.social.instagram || "").split("?")[0];
     const igLink = document.getElementById("igProfileLink");
     if (igUrl && !igUrl.includes("[")) {
@@ -123,6 +124,7 @@
       igEmpty.hidden = false;
     }
 
+    // ---------- روابط أخرى: يوتيوب / تيك توك / سناب شات ----------
     const otherLinks = [
       { key: "youtube", label: "يوتيوب ↗" },
       { key: "tiktok", label: "تيك توك ↗" },
@@ -139,12 +141,18 @@
       }
     }
 
+    // ---------- فيسبوك: تضمين صفحة حي (Page Plugin) ----------
     const fbUrl = (SITE_CONFIG.social.facebook || "").split("?")[0];
     if (fbUrl && !fbUrl.includes("[")) {
       document.getElementById("fbPageEmbed").innerHTML = `
-        <iframe src="https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(fbUrl)}&tabs=timeline&width=500&height=650&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true"
-          width="500" height="650" style="border:none;overflow:hidden;max-width:100%;" scrolling="no" frameborder="0"
-          allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" loading="lazy"></iframe>`;
+        <div style="display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;">
+          <iframe src="https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(fbUrl)}&tabs=timeline&width=500&height=650&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true"
+            width="500" height="650" style="border:none;overflow:hidden;max-width:100%;" scrolling="no" frameborder="0"
+            allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" loading="lazy"></iframe>
+          <a href="${fbUrl}" target="_blank" rel="noopener" class="btn btn--dark" style="font-size:13px;">
+            لا تظهر لك المنشورات؟ زُر صفحتنا مباشرة على فيسبوك ↗
+          </a>
+        </div>`;
     }
   });
 </script>
