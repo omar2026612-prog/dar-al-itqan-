@@ -5,7 +5,7 @@
   var LS_VIDEOS = "itqan_admin_videos";
   var LS_INSTAGRAM = "itqan_admin_instagram";
   var LS_CONFIG = "itqan_admin_config";
-  var LS_GITHUB = "itqan_github_settings"; // {owner, repo, branch, baseDir, token} — يبقى محلياً فقط، لا يُصدَّر أبداً
+  var LS_GITHUB = "itqan_github_settings";
   var SS_AUTH = "itqan_admin_auth";
   var LS_OWNER = "itqan_owner_mode";
 
@@ -17,6 +17,9 @@
   }
   function loadInstagramPosts() {
     return JSON.parse(JSON.stringify((typeof INSTAGRAM_POSTS !== "undefined" && INSTAGRAM_POSTS) || []));
+  }
+  function loadReviews() {
+    return JSON.parse(JSON.stringify((typeof REVIEWS !== "undefined" && REVIEWS) || []));
   }
   function loadGithubSettings() {
     try {
@@ -37,11 +40,13 @@
     projects: loadProjects(),
     videos: loadVideos(),
     instagramPosts: loadInstagramPosts(),
+    reviews: loadReviews(),
     configPatch: loadConfigPatch(),
     github: loadGithubSettings(),
     editingProjectId: null,
     editingVideoId: null,
     editingInstagramId: null,
+    editingReviewId: null,
     pendingCoverImage: null,
     pendingGalleryImages: [],
     pendingVideoFile: null,
@@ -171,6 +176,7 @@
     renderProjectsTable();
     renderVideosTable();
     renderInstagramTable();
+    renderReviewsTable();
     fillCompanyForm();
     var fbSpan = document.querySelector("[data-cfg-fb-url]");
     if (fbSpan) fbSpan.textContent = (SITE_CONFIG.social.facebook || "").replace(/^https?:\/\/(www\.)?/, "");
@@ -646,6 +652,104 @@
     downloadBlob("instagram.js", content, "application/javascript;charset=utf-8");
   }
 
+  function renderReviewsTable() {
+    var tbody = document.getElementById("reviewsTbody");
+    var empty = document.getElementById("reviewsEmpty");
+    var table = document.getElementById("reviewsTable");
+    if (!tbody) return;
+    if (!state.reviews.length) { table.hidden = true; empty.hidden = false; return; }
+    table.hidden = false; empty.hidden = true;
+    tbody.innerHTML = state.reviews.map(function (r, i) {
+      var stars = "★".repeat(r.rating || 5) + "☆".repeat(5 - (r.rating || 5));
+      var txt = (r.text && r.text.ar) || "";
+      return '<tr>' +
+        '<td>' + (r.name || "") + '</td>' +
+        '<td>' + stars + '</td>' +
+        '<td>' + (txt.length > 60 ? txt.slice(0, 60) + "…" : txt) + '</td>' +
+        '<td class="a-row-actions">' +
+          '<button class="a-btn sm outline" data-edit-review="' + i + '">تعديل</button>' +
+          '<button class="a-btn sm danger" data-del-review="' + i + '">حذف</button>' +
+        '</td></tr>';
+    }).join("");
+
+    tbody.querySelectorAll("[data-edit-review]").forEach(function (btn) {
+      btn.addEventListener("click", function () { openReviewForm(state.reviews[+btn.dataset.editReview]); });
+    });
+    tbody.querySelectorAll("[data-del-review]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (!confirm("حذف هذا الرأي؟")) return;
+        state.reviews.splice(+btn.dataset.delReview, 1);
+        renderReviewsTable();
+        alert("تم الحذف مؤقتاً هنا فقط. اضغط الآن \"🚀 نشر مباشر على الموقع\" حتى يُحذف فعلياً من الموقع.");
+      });
+    });
+  }
+
+  function resetReviewForm() {
+    state.editingReviewId = null;
+    document.getElementById("reviewFormTitle").textContent = "رأي جديد";
+    ["rName", "rProject", "rTextAr", "rTextEn"].forEach(function (id) { document.getElementById(id).value = ""; });
+    document.getElementById("rRating").value = "5";
+  }
+
+  function openReviewForm(review) {
+    resetReviewForm();
+    var form = document.getElementById("reviewForm");
+    form.hidden = false;
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!review) return;
+    state.editingReviewId = review.id;
+    document.getElementById("reviewFormTitle").textContent = "تعديل رأي: " + review.name;
+    document.getElementById("rName").value = review.name || "";
+    document.getElementById("rProject").value = review.project || "";
+    document.getElementById("rRating").value = review.rating || 5;
+    document.getElementById("rTextAr").value = (review.text && review.text.ar) || "";
+    document.getElementById("rTextEn").value = (review.text && review.text.en) || "";
+  }
+
+  function initReviewForm() {
+    document.getElementById("newReviewBtn").addEventListener("click", function () { openReviewForm(null); });
+    document.getElementById("cancelReviewBtn").addEventListener("click", function () {
+      document.getElementById("reviewForm").hidden = true;
+    });
+    document.getElementById("reviewForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name = document.getElementById("rName").value.trim();
+      var textAr = document.getElementById("rTextAr").value.trim();
+      if (!name || !textAr) return;
+
+      var existing = state.editingReviewId ? state.reviews.find(function (r) { return r.id === state.editingReviewId; }) : null;
+      var record = {
+        id: existing ? existing.id : slugId("review"),
+        name: name,
+        project: document.getElementById("rProject").value.trim(),
+        rating: +document.getElementById("rRating").value,
+        text: { ar: textAr, en: document.getElementById("rTextEn").value.trim() || textAr },
+      };
+      if (existing) Object.assign(existing, record);
+      else state.reviews.push(record);
+
+      renderReviewsTable();
+      document.getElementById("reviewForm").hidden = true;
+      alert("تم الحفظ هنا فقط. اضغط الآن \"🚀 نشر مباشر على الموقع\" حتى يظهر الرأي فعلياً لكل الزوار.");
+    });
+  }
+
+  async function publishReviews(btn) {
+    if (!requireGithub()) return;
+    if (!state.reviews.length) { alert("لا توجد آراء لنشرها بعد."); return; }
+    setBtnBusy(btn, "⏳ جارٍ النشر...");
+    try {
+      var content = "/**\n * آراء العملاء — تم إنشاؤه من لوحة التحكم\n */\n" + "let REVIEWS = " + JSON.stringify(state.reviews, null, 2) + ";\n";
+      await ghPutFile("js/reviews.js", utf8ToBase64(content), "تحديث آراء العملاء من لوحة التحكم");
+      alert("تم نشر آراء العملاء على الموقع مباشرة ✓");
+    } catch (err) {
+      alert("حدث خطأ أثناء النشر: " + err.message);
+    } finally {
+      clearBtnBusy(btn);
+    }
+  }
+
   function ghConfigured() {
     return !!(state.github.owner && state.github.repo && state.github.token);
   }
@@ -1071,6 +1175,7 @@
     initVideoForm();
     initFacebookImport();
     initInstagramImport();
+    initReviewForm();
     initCompanyForm();
     initGithubForm();
     document.getElementById("exportProjectsBtn").addEventListener("click", exportProjects);
@@ -1079,5 +1184,6 @@
     document.getElementById("publishProjectsBtn").addEventListener("click", function () { publishProjects(this); });
     document.getElementById("publishVideosBtn").addEventListener("click", function () { publishVideos(this); });
     document.getElementById("publishInstagramBtn").addEventListener("click", function () { publishInstagram(this); });
+    document.getElementById("publishReviewsBtn").addEventListener("click", function () { publishReviews(this); });
   });
 })();
